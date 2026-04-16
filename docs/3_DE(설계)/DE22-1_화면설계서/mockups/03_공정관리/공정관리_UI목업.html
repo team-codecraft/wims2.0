@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 2.0 - 공정관리</title>
+<style>
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-family);
+    background: #F0F2F5;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ===== Color Tokens ===== */
+  :root {
+    --primary: #1F4E79;
+    --accent: #2E75B6;
+    --header-bg: #D6E4F0;
+    --light-bg: #F2F7FB;
+    --success: #2E7D32;
+    --success-bg: #E8F5E9;
+    --replace: #1565C0;
+    --replace-bg: #E3F2FD;
+    --danger: #C62828;
+    --danger-bg: #FFEBEE;
+    --option: #7B1FA2;
+    --option-bg: #F3E5F5;
+    --border: #E0E0E0;
+    --font-family: '맑은 고딕', 'Malgun Gothic', -apple-system, sans-serif;
+    --bg-white: #FFFFFF;
+    --bg-panel: #FAFBFC;
+    --border-light: #E8E8E8;
+    --text-primary: #212529;
+    --text-secondary: #6C757D;
+    --text-muted: #ADB5BD;
+    --hover-bg: #F5F5F5;
+    --selected-bg: #E3F2FD;
+    --warning: #FFC107;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+    --radius: 6px;
+    --radius-sm: 4px;
+  }
+
+  /* ===== Layout ===== */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ===== Top Header ===== */
+  .top-header {
+    height: 50px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .nav-item {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .nav-item.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-weight: 600;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+  }
+  .breadcrumb {
+    color: rgba(255,255,255,0.8);
+  }
+  .breadcrumb strong {
+    color: #fff;
+  }
+  .user-info {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ===== Toolbar ===== */
+  .toolbar {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .toolbar .search-box {
+    position: relative;
+    flex: 0 0 220px;
+  }
+  .toolbar .search-box input {
+    width: 100%;
+    padding: 6px 10px 6px 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .toolbar .search-box input:focus { border-color: var(--accent); }
+  .toolbar .search-box .search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .toolbar select {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-primary);
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+  }
+  .toolbar select:focus { border-color: var(--accent); }
+  .toolbar .filter-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-left: 8px;
+  }
+  .toolbar .spacer { flex: 1; }
+  .btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #163B5C; }
+  .btn-accent {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-accent:hover { background: #1F5F99; }
+  .btn-outline {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { background: var(--hover-bg); border-color: #ccc; }
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
+  .btn-danger:hover { background: #A41F1F; }
+  .btn-success {
+    background: var(--success);
+    color: #fff;
+  }
+  .btn-success:hover { background: #1B5E20; }
+
+  /* ===== Main Content ===== */
+  .main-content {
+    flex: 1;
+    display: flex;
+    padding: 12px 24px 12px 24px;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  /* ===== Left: Process List ===== */
+  .process-list-panel {
+    flex: 0 0 60%;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel-header {
+    background: var(--header-bg);
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 1px solid #C2D4E6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .panel-header .count {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  /* ===== Table ===== */
+  .table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  thead th {
+    background: #EFF3F7;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: var(--hover-bg); }
+  tbody tr.selected { background: var(--selected-bg); }
+  tbody td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border-light);
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .code-cell {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .price-cell {
+    text-align: right;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+  }
+
+  /* ===== Process Type Tags ===== */
+  .type-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .type-cut { background: #FFF3E0; color: #E65100; }
+  .type-weld { background: #FFEBEE; color: #C62828; }
+  .type-coat { background: #E3F2FD; color: #1565C0; }
+  .type-assy { background: #E8F5E9; color: #2E7D32; }
+  .type-glass { background: #F3E5F5; color: #7B1FA2; }
+  .type-wrap { background: #EFEBE9; color: #5D4037; }
+  .type-seal { background: #F5F5F5; color: #616161; }
+
+  /* ===== Status Badge ===== */
+  .status-active {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--success-bg);
+    color: var(--success);
+  }
+  .status-inactive {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #F5F5F5;
+    color: #9E9E9E;
+  }
+
+  /* ===== WC Type Badge (Internal / External) ===== */
+  .wc-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .wc-type-internal {
+    background: var(--success-bg);
+    color: var(--success);
+  }
+  .wc-type-external {
+    background: #FFF3E0;
+    color: #E65100;
+  }
+
+  /* ===== Footer Stats ===== */
+  .list-footer {
+    padding: 6px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-panel);
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .list-footer .stat-item span {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* ===== Right: Detail Panel ===== */
+  .detail-panel {
+    flex: 0 0 40%;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .detail-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  .detail-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 13px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .detail-empty .empty-icon {
+    font-size: 36px;
+    opacity: 0.3;
+  }
+
+  /* ===== Detail Sections ===== */
+  .detail-section {
+    margin-bottom: 18px;
+  }
+  .detail-section:last-child { margin-bottom: 0; }
+  .detail-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .detail-row {
+    display: flex;
+    margin-bottom: 8px;
+    align-items: flex-start;
+  }
+  .detail-label {
+    flex: 0 0 100px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding-top: 2px;
+  }
+  .detail-value {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+  .detail-value.mono {
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* ===== Tags ===== */
+  .material-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .material-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    background: var(--light-bg);
+    color: var(--accent);
+    border: 1px solid #C2D4E6;
+    font-weight: 500;
+  }
+
+  /* ===== MBOM Usage List ===== */
+  .mbom-usage-list {
+    list-style: none;
+    padding: 0;
+  }
+  .mbom-usage-list li {
+    padding: 5px 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+  }
+  .mbom-usage-list li:last-child { border-bottom: none; }
+  .mbom-usage-list .product-name {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .mbom-usage-list .part-name {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ===== Detail Footer ===== */
+  .detail-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-panel);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  /* ===== Edit Mode Form ===== */
+  .form-group {
+    margin-bottom: 12px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-family: var(--font-family);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(46,117,182,0.1);
+  }
+  .form-group input[readonly] {
+    background: #F5F5F5;
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+  .form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
+  .form-row .form-group { flex: 1; }
+
+  /* ===== Radio Group ===== */
+  .radio-group {
+    display: flex;
+    gap: 16px;
+    padding: 6px 0;
+  }
+  .radio-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .radio-group input[type="radio"] {
+    width: auto;
+    accent-color: var(--accent);
+  }
+
+  /* ===== Checkbox Group ===== */
+  .checkbox-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .checkbox-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .checkbox-group input[type="checkbox"] {
+    width: auto;
+    accent-color: var(--accent);
+  }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    width: 560px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    background: var(--header-bg);
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    border-bottom: 1px solid #C2D4E6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    line-height: 1;
+  }
+  .modal-header .close-btn:hover { color: var(--danger); }
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-panel);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* ===== Code Preview ===== */
+  .code-preview {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    background: var(--light-bg);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .code-preview .prefix {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* ===== Validation ===== */
+  .form-group.has-error input,
+  .form-group.has-error select {
+    border-color: var(--danger);
+  }
+  .form-group .error-msg {
+    font-size: 10px;
+    color: var(--danger);
+    margin-top: 2px;
+    display: none;
+  }
+  .form-group.has-error .error-msg { display: block; }
+
+  /* ===== Scrollbar ===== */
+  .table-wrapper::-webkit-scrollbar,
+  .detail-body::-webkit-scrollbar,
+  .modal-body::-webkit-scrollbar { width: 6px; }
+  .table-wrapper::-webkit-scrollbar-thumb,
+  .detail-body::-webkit-scrollbar-thumb,
+  .modal-body::-webkit-scrollbar-thumb {
+    background: #CCC;
+    border-radius: 3px;
+  }
+  .table-wrapper::-webkit-scrollbar-track,
+  .detail-body::-webkit-scrollbar-track,
+  .modal-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* ===== Tooltip ===== */
+  .wc-label {
+    font-size: 11px;
+  }
+  .wc-code {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ===== Supplier Info ===== */
+  .supplier-info {
+    background: #FFF8E1;
+    border: 1px solid #FFE082;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin-top: 6px;
+    font-size: 11px;
+  }
+  .supplier-info .supplier-row {
+    display: flex;
+    margin-bottom: 4px;
+  }
+  .supplier-info .supplier-row:last-child { margin-bottom: 0; }
+  .supplier-info .supplier-label {
+    flex: 0 0 60px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .supplier-info .supplier-value {
+    flex: 1;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- ===== Top Bar ===== -->
+  <header class="top-header">
+    <div class="header-left">
+      <span class="logo">WIMS 2.0</span>
+      <nav class="header-nav">
+        <a href="#" class="nav-item active">제품관리</a>
+        <a href="#" class="nav-item">견적설계</a>
+        <a href="#" class="nav-item">발주관리</a>
+        <a href="#" class="nav-item">제조관리</a>
+        <a href="#" class="nav-item">시스템</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="breadcrumb">제품관리 &gt; <strong>공정관리</strong></span>
+      <span class="user-info">김지광</span>
+    </div>
+  </header>
+
+  <!-- ===== Toolbar ===== -->
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" id="searchInput" placeholder="공정코드 / 공정명 검색..." oninput="filterTable()">
+    </div>
+
+    <span class="filter-label">공정유형</span>
+    <select id="filterType" onchange="filterTable()">
+      <option value="">전체</option>
+      <option value="절단">절단</option>
+      <option value="용접">용접</option>
+      <option value="코팅">코팅</option>
+      <option value="조립">조립</option>
+      <option value="유리삽입">유리삽입</option>
+      <option value="래핑">래핑</option>
+      <option value="밀봉">밀봉</option>
+    </select>
+
+    <span class="filter-label">내부/외부</span>
+    <select id="filterWCType" onchange="filterTable()">
+      <option value="">전체</option>
+      <option value="INTERNAL">내부</option>
+      <option value="EXTERNAL">외주</option>
+    </select>
+
+    <span class="filter-label">작업장</span>
+    <select id="filterWC" onchange="filterTable()">
+      <option value="">전체</option>
+      <optgroup label="내부 작업장">
+        <option value="WC-FRAME">WC-FRAME (프레임 가공장)</option>
+        <option value="WC-SASH">WC-SASH (창짝 조립장)</option>
+        <option value="WC-GLASS">WC-GLASS (유리 가공장)</option>
+        <option value="WC-SEAL">WC-SEAL (밀봉 작업장)</option>
+        <option value="WC-SCREEN">WC-SCREEN (방충망 작업장)</option>
+      </optgroup>
+      <optgroup label="외부 업체 (외주)">
+        <option value="EXT-COT-01">EXT-COT-01 (분체도장 외주)</option>
+        <option value="EXT-COT-02">EXT-COT-02 (아노다이징 외주)</option>
+        <option value="EXT-WRP-01">EXT-WRP-01 (래핑 외주)</option>
+        <option value="EXT-GLS-01">EXT-GLS-01 (유리 가공 외주)</option>
+        <option value="EXT-GLS-02">EXT-GLS-02 (강화유리 외주)</option>
+        <option value="EXT-CUT-01">EXT-CUT-01 (정밀절단 외주)</option>
+      </optgroup>
+    </select>
+
+    <span class="filter-label">상태</span>
+    <select id="filterStatus" onchange="filterTable()">
+      <option value="">전체</option>
+      <option value="ACTIVE">활성</option>
+      <option value="INACTIVE">비활성</option>
+    </select>
+
+    <div class="spacer"></div>
+
+    <button class="btn btn-primary" onclick="openNewModal()">+ 신규 등록</button>
+  </div>
+
+  <!-- ===== Main Content ===== -->
+  <div class="main-content">
+
+    <!-- Left: Process List -->
+    <div class="process-list-panel">
+      <div class="panel-header">
+        <span>공정 목록</span>
+        <span class="count" id="listCount">총 15건</span>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:120px;">공정코드</th>
+              <th>공정명</th>
+              <th style="width:68px;">공정유형</th>
+              <th style="width:56px;">내부/외부</th>
+              <th style="width:110px;">작업장/업체</th>
+              <th style="width:80px;text-align:right;">단가</th>
+              <th style="width:36px;">단위</th>
+              <th style="width:48px;">상태</th>
+            </tr>
+          </thead>
+          <tbody id="processTableBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="list-footer">
+        <span class="stat-item">전체 <span id="totalCount">15</span>건</span>
+        <span class="stat-item">활성 <span id="activeCount">15</span>건</span>
+        <span class="stat-item">비활성 <span id="inactiveCount">0</span>건</span>
+        <span class="stat-item">내부 <span id="internalCount">0</span>건</span>
+        <span class="stat-item">외주 <span id="externalCount">0</span>건</span>
+      </div>
+    </div>
+
+    <!-- Right: Detail Panel -->
+    <div class="detail-panel">
+      <div class="panel-header">
+        <span id="detailTitle">공정 상세</span>
+        <span id="detailMode" style="font-size:11px;font-weight:400;color:var(--text-secondary);"></span>
+      </div>
+      <div class="detail-body" id="detailBody">
+        <div class="detail-empty">
+          <div class="empty-icon">&#9881;</div>
+          <span>좌측 목록에서 공정을 선택하세요.</span>
+        </div>
+      </div>
+      <div class="detail-footer" id="detailFooter" style="display:none;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== New Process Modal ===== -->
+<div class="modal-overlay" id="newModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span>공정 신규 등록</span>
+      <button class="close-btn" onclick="closeNewModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="code-preview" id="codePreview">
+        <span class="prefix">공정코드:</span>
+        <span id="codePreviewValue">PRC-???-???</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" id="fgNewType">
+          <label>공정유형 *</label>
+          <select id="newType" onchange="updateCodePreview()">
+            <option value="">선택하세요</option>
+            <option value="절단" data-code="CUT">절단</option>
+            <option value="용접" data-code="WLD">용접</option>
+            <option value="코팅" data-code="COT">코팅</option>
+            <option value="조립" data-code="ASY">조립</option>
+            <option value="유리삽입" data-code="INS">유리삽입</option>
+            <option value="래핑" data-code="WRP">래핑</option>
+            <option value="밀봉" data-code="SEL">밀봉</option>
+          </select>
+          <div class="error-msg">공정유형을 선택하세요.</div>
+        </div>
+        <div class="form-group" id="fgNewSeq">
+          <label>코드 순번 *</label>
+          <input type="text" id="newSeq" placeholder="예: 001, M45, B90" maxlength="5" oninput="updateCodePreview()">
+          <div class="error-msg">코드 순번을 입력하세요.</div>
+        </div>
+      </div>
+
+      <div class="form-group" id="fgNewName">
+        <label>공정명 *</label>
+        <input type="text" id="newName" placeholder="공정명을 입력하세요">
+        <div class="error-msg">공정명을 입력하세요.</div>
+      </div>
+
+      <div class="form-group" id="fgNewWCType">
+        <label>구분 *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="newWCType" value="INTERNAL" checked onchange="onNewWCTypeChange()"> 내부</label>
+          <label><input type="radio" name="newWCType" value="EXTERNAL" onchange="onNewWCTypeChange()"> 외부 (외주)</label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" id="fgNewWC">
+          <label id="newWCLabel">작업장 *</label>
+          <select id="newWC">
+            <option value="">선택하세요</option>
+            <option value="WC-FRAME">WC-FRAME (프레임 가공장)</option>
+            <option value="WC-SASH">WC-SASH (창짝 조립장)</option>
+            <option value="WC-GLASS">WC-GLASS (유리 가공장)</option>
+            <option value="WC-SEAL">WC-SEAL (밀봉 작업장)</option>
+            <option value="WC-SCREEN">WC-SCREEN (방충망 작업장)</option>
+          </select>
+          <div class="error-msg">작업장을 선택하세요.</div>
+        </div>
+        <div class="form-group" id="fgNewUnit">
+          <label>단위</label>
+          <select id="newUnit">
+            <option value="EA">EA</option>
+            <option value="M">M</option>
+            <option value="M2">M2</option>
+            <option value="SET">SET</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" id="fgNewPrice">
+          <label>공정 단가 (원) *</label>
+          <input type="text" id="newPrice" placeholder="0" oninput="formatPriceInput(this)">
+          <div class="error-msg">공정 단가를 입력하세요.</div>
+        </div>
+        <div class="form-group">
+          <label>예상 작업시간 (초)</label>
+          <input type="number" id="newTime" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>적용 가능 자재</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" value="프레임" class="newMat"> 프레임</label>
+          <label><input type="checkbox" value="원자재" class="newMat"> 원자재</label>
+          <label><input type="checkbox" value="부자재" class="newMat"> 부자재</label>
+          <label><input type="checkbox" value="기밀자재" class="newMat"> 기밀자재</label>
+          <label><input type="checkbox" value="방충망" class="newMat"> 방충망</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>공정 설명</label>
+        <textarea id="newDesc" placeholder="공정에 대한 설명을 입력하세요"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeNewModal()">취소</button>
+      <button class="btn btn-primary" onclick="registerProcess()">등록</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Work Center Master =====
+const workCenters = {
+  // 내부 공장
+  'WC-FRAME': { name: '프레임 가공장', type: 'INTERNAL', supplier: null },
+  'WC-SASH': { name: '창짝 조립장', type: 'INTERNAL', supplier: null },
+  'WC-GLASS': { name: '유리 가공장', type: 'INTERNAL', supplier: null },
+  'WC-SEAL': { name: '밀봉 작업장', type: 'INTERNAL', supplier: null },
+  'WC-SCREEN': { name: '방충망 작업장', type: 'INTERNAL', supplier: null },
+  // 외부 업체 (외주)
+  'EXT-COT-01': { name: '분체도장 외주', type: 'EXTERNAL', supplier: '○○도장', tel: '031-123-4567', addr: '경기도 화성시 팔탄면 XX로 123' },
+  'EXT-COT-02': { name: '아노다이징 외주', type: 'EXTERNAL', supplier: '△△알루미늄', tel: '031-234-5678', addr: '경기도 시흥시 정왕동 YY길 45' },
+  'EXT-WRP-01': { name: '래핑 외주', type: 'EXTERNAL', supplier: '□□필름', tel: '032-345-6789', addr: '인천시 남동구 논현동 ZZ로 67' },
+  'EXT-GLS-01': { name: '유리 가공 외주', type: 'EXTERNAL', supplier: '◇◇유리', tel: '031-456-7890', addr: '경기도 안산시 단원구 AA로 89' },
+  'EXT-GLS-02': { name: '강화유리 외주', type: 'EXTERNAL', supplier: '☆☆글라스', tel: '031-567-8901', addr: '경기도 평택시 포승읍 BB길 12' },
+  'EXT-CUT-01': { name: '정밀절단 외주', type: 'EXTERNAL', supplier: '◎◎정밀', tel: '031-678-9012', addr: '경기도 김포시 양촌읍 CC로 34' },
+};
+
+// ===== Helper: get WC display info =====
+function getWCTypeBadge(wcCode) {
+  const wc = workCenters[wcCode];
+  if (!wc) return '';
+  if (wc.type === 'INTERNAL') {
+    return '<span class="wc-type-badge wc-type-internal">내부</span>';
+  } else {
+    return '<span class="wc-type-badge wc-type-external">외주</span>';
+  }
+}
+
+function getWCDisplayName(wcCode) {
+  const wc = workCenters[wcCode];
+  if (!wc) return wcCode;
+  if (wc.type === 'EXTERNAL') {
+    return wc.supplier;
+  }
+  return wc.name;
+}
+
+function getWCType(wcCode) {
+  const wc = workCenters[wcCode];
+  return wc ? wc.type : 'INTERNAL';
+}
+
+// ===== Type to CSS class mapping =====
+const typeClassMap = {
+  '절단': 'type-cut',
+  '용접': 'type-weld',
+  '코팅': 'type-coat',
+  '조립': 'type-assy',
+  '유리삽입': 'type-glass',
+  '래핑': 'type-wrap',
+  '밀봉': 'type-seal'
+};
+
+// ===== Process Data =====
+const processes = [
+  { id: 1, code: 'PRC-CUT-M45', name: '45\u00B0 사선절단', type: '절단', wc: 'WC-FRAME', price: 3500, unit: 'EA', time: 120, desc: '프레임 코너 45도 사선절단', materials: ['프레임'], status: 'ACTIVE' },
+  { id: 2, code: 'PRC-CUT-B90', name: '직각절단 (90\u00B0)', type: '절단', wc: 'WC-FRAME', price: 2800, unit: 'EA', time: 90, desc: '프레임 코너 직각절단', materials: ['프레임'], status: 'ACTIVE' },
+  { id: 3, code: 'PRC-CUT-GLS', name: '유리 절단', type: '절단', wc: 'EXT-GLS-01', price: 5000, unit: 'M2', time: 180, desc: '판유리 치수 절단 (외주)', materials: ['원자재'], status: 'ACTIVE' },
+  { id: 4, code: 'PRC-CUT-SCR', name: '방충망 절단', type: '절단', wc: 'WC-SCREEN', price: 1500, unit: 'EA', time: 60, desc: '방충망 원단 절단', materials: ['방충망'], status: 'ACTIVE' },
+  { id: 5, code: 'PRC-WLD-CNR', name: '코너 용접', type: '용접', wc: 'WC-FRAME', price: 4200, unit: 'EA', time: 150, desc: 'PVC 프레임 코너 열용접', materials: ['프레임'], status: 'ACTIVE' },
+  { id: 6, code: 'PRC-WLD-MUL', name: '멀리언 용접', type: '용접', wc: 'WC-FRAME', price: 3800, unit: 'EA', time: 120, desc: '멀리언 접합 열용접', materials: ['프레임'], status: 'ACTIVE' },
+  { id: 7, code: 'PRC-COT-PWD', name: '분체도장', type: '코팅', wc: 'EXT-COT-01', price: 8500, unit: 'M2', time: 300, desc: '알루미늄 분체도장 (외주: ○○도장)', materials: ['프레임'], status: 'ACTIVE' },
+  { id: 8, code: 'PRC-COT-ANO', name: '아노다이징', type: '코팅', wc: 'EXT-COT-02', price: 12000, unit: 'M2', time: 600, desc: '알루미늄 양극산화처리 (외주: △△알루미늄)', materials: ['프레임'], status: 'ACTIVE' },
+  { id: 9, code: 'PRC-WRP-001', name: '우드그레인 래핑', type: '래핑', wc: 'EXT-WRP-01', price: 15000, unit: 'M', time: 400, desc: 'PVC 프레임 우드그레인 필름 래핑 (외주: □□필름)', materials: ['프레임'], status: 'ACTIVE' },
+  { id: 10, code: 'PRC-ASY-FRM', name: '창틀 조립', type: '조립', wc: 'WC-FRAME', price: 6000, unit: 'SET', time: 300, desc: '창틀(프레임) 4면 조립', materials: ['프레임', '부자재'], status: 'ACTIVE' },
+  { id: 11, code: 'PRC-ASY-OSH', name: '외측 창짝 조립', type: '조립', wc: 'WC-SASH', price: 5500, unit: 'SET', time: 250, desc: '외측(고정/개폐) 창짝 조립', materials: ['프레임', '부자재'], status: 'ACTIVE' },
+  { id: 12, code: 'PRC-ASY-ISH', name: '내측 창짝 조립', type: '조립', wc: 'WC-SASH', price: 5500, unit: 'SET', time: 250, desc: '내측(고정/개폐) 창짝 조립', materials: ['프레임', '부자재'], status: 'ACTIVE' },
+  { id: 13, code: 'PRC-ASY-HDW', name: '하드웨어 조립', type: '조립', wc: 'WC-SASH', price: 3000, unit: 'SET', time: 180, desc: '핸들, 잠금장치, 롤러 등 하드웨어 장착', materials: ['부자재'], status: 'ACTIVE' },
+  { id: 14, code: 'PRC-INS-GLS', name: '유리 삽입', type: '유리삽입', wc: 'WC-GLASS', price: 4000, unit: 'EA', time: 200, desc: '복층유리 창짝 삽입 및 비드 체결', materials: ['원자재', '부자재'], status: 'ACTIVE' },
+  { id: 15, code: 'PRC-SEL-001', name: '기밀 시공', type: '밀봉', wc: 'WC-SEAL', price: 2500, unit: 'M', time: 120, desc: '실리콘/가스켓 기밀 시공', materials: ['기밀자재'], status: 'ACTIVE' }
+];
+
+// ===== MBOM usage mock data =====
+const mbomUsage = {
+  'PRC-CUT-M45': [
+    { product: '미서기이중창 (SLD-2T)', part: '외측 상틀 (F-TS-OUT)' },
+    { product: '미서기이중창 (SLD-2T)', part: '외측 하틀 (F-BS-OUT)' },
+    { product: '미서기이중창 (SLD-2T)', part: '내측 상틀 (F-TS-INN)' }
+  ],
+  'PRC-WLD-CNR': [
+    { product: '미서기이중창 (SLD-2T)', part: '외측 창틀 ASSY' },
+    { product: '미서기이중창 (SLD-2T)', part: '내측 창틀 ASSY' }
+  ],
+  'PRC-ASY-FRM': [
+    { product: '미서기이중창 (SLD-2T)', part: '외측 창틀 ASSY' },
+    { product: '미서기이중창 (SLD-2T)', part: '내측 창틀 ASSY' }
+  ],
+  'PRC-INS-GLS': [
+    { product: '미서기이중창 (SLD-2T)', part: '외측 고정짝 ASSY' },
+    { product: '미서기이중창 (SLD-2T)', part: '내측 개폐짝 ASSY' }
+  ]
+};
+
+let selectedProcess = null;
+let editMode = false;
+
+// ===== Render Table =====
+function renderTable(data) {
+  const tbody = document.getElementById('processTableBody');
+  tbody.innerHTML = '';
+  data.forEach(p => {
+    const tr = document.createElement('tr');
+    if (selectedProcess && selectedProcess.id === p.id) tr.classList.add('selected');
+    tr.onclick = () => selectProcess(p);
+    const wcInfo = workCenters[p.wc];
+    const wcType = wcInfo ? wcInfo.type : 'INTERNAL';
+    const wcDisplay = getWCDisplayName(p.wc);
+    tr.innerHTML = `
+      <td class="code-cell">${p.code}</td>
+      <td>${p.name}</td>
+      <td><span class="type-tag ${typeClassMap[p.type]}">${p.type}</span></td>
+      <td>${getWCTypeBadge(p.wc)}</td>
+      <td><span class="wc-label">${wcDisplay}</span><br><span class="wc-code">${p.wc}</span></td>
+      <td class="price-cell">${p.price.toLocaleString()}원</td>
+      <td>${p.unit}</td>
+      <td><span class="${p.status === 'ACTIVE' ? 'status-active' : 'status-inactive'}">${p.status === 'ACTIVE' ? '활성' : '비활성'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const total = data.length;
+  const active = data.filter(p => p.status === 'ACTIVE').length;
+  const inactive = data.filter(p => p.status === 'INACTIVE').length;
+  const internal = data.filter(p => getWCType(p.wc) === 'INTERNAL').length;
+  const external = data.filter(p => getWCType(p.wc) === 'EXTERNAL').length;
+  document.getElementById('listCount').textContent = `총 ${total}건`;
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('activeCount').textContent = active;
+  document.getElementById('inactiveCount').textContent = inactive;
+  document.getElementById('internalCount').textContent = internal;
+  document.getElementById('externalCount').textContent = external;
+}
+
+// ===== Filter =====
+function filterTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const typeFilter = document.getElementById('filterType').value;
+  const wcTypeFilter = document.getElementById('filterWCType').value;
+  const wcFilter = document.getElementById('filterWC').value;
+  const statusFilter = document.getElementById('filterStatus').value;
+
+  const filtered = processes.filter(p => {
+    const matchSearch = !search || p.code.toLowerCase().includes(search) || p.name.toLowerCase().includes(search);
+    const matchType = !typeFilter || p.type === typeFilter;
+    const matchWCType = !wcTypeFilter || getWCType(p.wc) === wcTypeFilter;
+    const matchWC = !wcFilter || p.wc === wcFilter;
+    const matchStatus = !statusFilter || p.status === statusFilter;
+    return matchSearch && matchType && matchWCType && matchWC && matchStatus;
+  });
+
+  renderTable(filtered);
+}
+
+// ===== Select Process =====
+function selectProcess(p) {
+  selectedProcess = p;
+  editMode = false;
+  renderDetail();
+  filterTable();
+}
+
+// ===== Format seconds to MM:SS =====
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}분 ${s > 0 ? s + '초' : ''}`.trim() + ` (${sec}초)`;
+}
+
+// ===== Render Detail - View Mode =====
+function renderDetailView(p) {
+  const usage = mbomUsage[p.code] || [];
+  const usageHtml = usage.length > 0
+    ? `<ul class="mbom-usage-list">${usage.map(u => `<li><span class="product-name">${u.product}</span><span class="part-name">${u.part}</span></li>`).join('')}</ul>`
+    : '<div style="font-size:11px;color:var(--text-muted);padding:8px 0;">이 공정을 사용하는 공정구성(MBOM)이 없습니다.</div>';
+
+  const wcInfo = workCenters[p.wc];
+  const wcType = wcInfo ? wcInfo.type : 'INTERNAL';
+  const isExternal = wcType === 'EXTERNAL';
+
+  let wcSectionHtml = '';
+  if (isExternal) {
+    wcSectionHtml = `
+      <div class="detail-row">
+        <div class="detail-label">구분</div>
+        <div class="detail-value">${getWCTypeBadge(p.wc)}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">외주 업체</div>
+        <div class="detail-value" style="font-weight:600;">${wcInfo.supplier}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">작업장 코드</div>
+        <div class="detail-value"><span style="font-size:11px;color:var(--text-muted);">${p.wc} (${wcInfo.name})</span></div>
+      </div>
+      <div class="supplier-info">
+        <div class="supplier-row">
+          <span class="supplier-label">연락처</span>
+          <span class="supplier-value">${wcInfo.tel || '-'}</span>
+        </div>
+        <div class="supplier-row">
+          <span class="supplier-label">주소</span>
+          <span class="supplier-value">${wcInfo.addr || '-'}</span>
+        </div>
+      </div>
+    `;
+  } else {
+    wcSectionHtml = `
+      <div class="detail-row">
+        <div class="detail-label">구분</div>
+        <div class="detail-value">${getWCTypeBadge(p.wc)}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">작업장</div>
+        <div class="detail-value">${wcInfo ? wcInfo.name : p.wc} <span style="font-size:11px;color:var(--text-muted);">(${p.wc})</span></div>
+      </div>
+    `;
+  }
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">기본 정보</div>
+      <div class="detail-row">
+        <div class="detail-label">공정코드</div>
+        <div class="detail-value mono">${p.code}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">공정명</div>
+        <div class="detail-value">${p.name}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">공정유형</div>
+        <div class="detail-value"><span class="type-tag ${typeClassMap[p.type]}">${p.type}</span></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label">상태</div>
+        <div class="detail-value"><span class="${p.status === 'ACTIVE' ? 'status-active' : 'status-inactive'}">${p.status === 'ACTIVE' ? '활성' : '비활성'}</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">작업 정보</div>
+      ${wcSectionHtml}
+      <div class="detail-row">
+        <div class="detail-label">예상 작업시간</div>
+        <div class="detail-value">${formatTime(p.time)}</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">단가 정보</div>
+      <div class="detail-row">
+        <div class="detail-label">공정 단가</div>
+        <div class="detail-value" style="font-weight:600;color:var(--primary);font-size:14px;">${p.price.toLocaleString()}원 <span style="font-size:11px;color:var(--text-muted);font-weight:400;">/ ${p.unit}</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">적용 가능 자재</div>
+      <div class="material-tags">
+        ${p.materials.map(m => `<span class="material-tag">${m}</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">공정 설명</div>
+      <div style="font-size:12px;color:var(--text-primary);line-height:1.6;">${p.desc || '-'}</div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">공정구성(MBOM) 사용처 ${usage.length > 0 ? '<span style="font-size:10px;font-weight:400;color:var(--text-muted);">(' + usage.length + '건)</span>' : ''}</div>
+      ${usageHtml}
+    </div>
+  `;
+
+  document.getElementById('detailTitle').textContent = '공정 상세';
+  document.getElementById('detailMode').textContent = '조회 모드';
+  document.getElementById('detailFooter').style.display = 'flex';
+  document.getElementById('detailFooter').innerHTML = `
+    <button class="btn btn-outline" onclick="toggleStatus()" style="margin-right:auto;">${p.status === 'ACTIVE' ? '비활성화' : '활성화'}</button>
+    <button class="btn btn-accent" onclick="enterEditMode()">편집</button>
+  `;
+}
+
+// ===== Build WC options for select =====
+function buildWCOptions(selectedWC, filterType) {
+  const entries = Object.entries(workCenters).filter(([k,v]) => !filterType || v.type === filterType);
+  if (filterType) {
+    return entries.map(([k,v]) => {
+      const label = v.type === 'EXTERNAL' ? `${k} (${v.supplier})` : `${k} (${v.name})`;
+      return `<option value="${k}" ${k===selectedWC?'selected':''}>${label}</option>`;
+    }).join('');
+  }
+  // Group by type
+  const internal = Object.entries(workCenters).filter(([k,v]) => v.type === 'INTERNAL');
+  const external = Object.entries(workCenters).filter(([k,v]) => v.type === 'EXTERNAL');
+  let html = '<optgroup label="내부 작업장">';
+  html += internal.map(([k,v]) => `<option value="${k}" ${k===selectedWC?'selected':''}>${k} (${v.name})</option>`).join('');
+  html += '</optgroup><optgroup label="외부 업체 (외주)">';
+  html += external.map(([k,v]) => `<option value="${k}" ${k===selectedWC?'selected':''}>${k} (${v.supplier})</option>`).join('');
+  html += '</optgroup>';
+  return html;
+}
+
+// ===== Render Detail - Edit Mode =====
+function renderDetailEdit(p) {
+  const materialsAll = ['프레임', '원자재', '부자재', '기밀자재', '방충망'];
+  const currentWCType = getWCType(p.wc);
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="form-group">
+      <label>공정코드</label>
+      <input type="text" value="${p.code}" readonly>
+    </div>
+    <div class="form-group">
+      <label>공정명 *</label>
+      <input type="text" id="editName" value="${p.name}">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>공정유형</label>
+        <select id="editType">
+          ${['절단','용접','코팅','조립','유리삽입','래핑','밀봉'].map(t => `<option value="${t}" ${t===p.type?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>단위</label>
+        <select id="editUnit">
+          ${['EA','M','M2','SET'].map(u => `<option value="${u}" ${u===p.unit?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>구분</label>
+      <div class="radio-group">
+        <label><input type="radio" name="editWCType" value="INTERNAL" ${currentWCType==='INTERNAL'?'checked':''} onchange="onEditWCTypeChange()"> 내부</label>
+        <label><input type="radio" name="editWCType" value="EXTERNAL" ${currentWCType==='EXTERNAL'?'checked':''} onchange="onEditWCTypeChange()"> 외부 (외주)</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label id="editWCLabel">${currentWCType === 'EXTERNAL' ? '외주 업체' : '작업장'}</label>
+      <select id="editWC">
+        <option value="">선택하세요</option>
+        ${buildWCOptions(p.wc, currentWCType)}
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>단가 (원) *</label>
+        <input type="text" id="editPrice" value="${p.price.toLocaleString()}" oninput="formatPriceInput(this)">
+      </div>
+      <div class="form-group">
+        <label>예상 작업시간 (초)</label>
+        <input type="number" id="editTime" value="${p.time}" min="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>적용 가능 자재</label>
+      <div class="checkbox-group">
+        ${materialsAll.map(m => `<label><input type="checkbox" value="${m}" class="editMat" ${p.materials.includes(m)?'checked':''}> ${m}</label>`).join('')}
+      </div>
+    </div>
+    <div class="form-group">
+      <label>공정 설명</label>
+      <textarea id="editDesc">${p.desc || ''}</textarea>
+    </div>
+  `;
+
+  document.getElementById('detailTitle').textContent = '공정 편집';
+  document.getElementById('detailMode').textContent = '편집 모드';
+  document.getElementById('detailFooter').style.display = 'flex';
+  document.getElementById('detailFooter').innerHTML = `
+    <button class="btn btn-outline" onclick="cancelEdit()">취소</button>
+    <button class="btn btn-success" onclick="saveEdit()">저장</button>
+  `;
+}
+
+// ===== Edit WC Type Change =====
+function onEditWCTypeChange() {
+  const wcType = document.querySelector('input[name="editWCType"]:checked').value;
+  const wcSelect = document.getElementById('editWC');
+  const wcLabel = document.getElementById('editWCLabel');
+  wcLabel.textContent = wcType === 'EXTERNAL' ? '외주 업체' : '작업장';
+  wcSelect.innerHTML = '<option value="">선택하세요</option>' + buildWCOptions('', wcType);
+}
+
+// ===== Render Detail =====
+function renderDetail() {
+  if (!selectedProcess) return;
+  if (editMode) {
+    renderDetailEdit(selectedProcess);
+  } else {
+    renderDetailView(selectedProcess);
+  }
+}
+
+// ===== Edit Mode =====
+function enterEditMode() {
+  editMode = true;
+  renderDetail();
+}
+
+function cancelEdit() {
+  editMode = false;
+  renderDetail();
+}
+
+function saveEdit() {
+  const p = selectedProcess;
+  p.name = document.getElementById('editName').value;
+  p.type = document.getElementById('editType').value;
+  p.wc = document.getElementById('editWC').value;
+  p.price = parseInt(document.getElementById('editPrice').value.replace(/,/g, '')) || 0;
+  p.unit = document.getElementById('editUnit').value;
+  p.time = parseInt(document.getElementById('editTime').value) || 0;
+  p.materials = Array.from(document.querySelectorAll('.editMat:checked')).map(cb => cb.value);
+  p.desc = document.getElementById('editDesc').value;
+
+  editMode = false;
+  renderDetail();
+  filterTable();
+  showToast('공정 정보가 저장되었습니다.');
+}
+
+// ===== Toggle Status =====
+function toggleStatus() {
+  if (!selectedProcess) return;
+  const newStatus = selectedProcess.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+  const label = newStatus === 'INACTIVE' ? '비활성화' : '활성화';
+  if (confirm(`"${selectedProcess.name}" 공정을 ${label}하시겠습니까?`)) {
+    selectedProcess.status = newStatus;
+    renderDetail();
+    filterTable();
+    showToast(`공정이 ${label}되었습니다.`);
+  }
+}
+
+// ===== New Modal: WC Type Change =====
+function onNewWCTypeChange() {
+  const wcType = document.querySelector('input[name="newWCType"]:checked').value;
+  const wcSelect = document.getElementById('newWC');
+  const wcLabel = document.getElementById('newWCLabel');
+
+  if (wcType === 'EXTERNAL') {
+    wcLabel.textContent = '외주 업체 *';
+    wcSelect.innerHTML = '<option value="">선택하세요</option>';
+    Object.entries(workCenters).filter(([k,v]) => v.type === 'EXTERNAL').forEach(([k,v]) => {
+      wcSelect.innerHTML += `<option value="${k}">${k} (${v.supplier})</option>`;
+    });
+  } else {
+    wcLabel.textContent = '작업장 *';
+    wcSelect.innerHTML = '<option value="">선택하세요</option>';
+    Object.entries(workCenters).filter(([k,v]) => v.type === 'INTERNAL').forEach(([k,v]) => {
+      wcSelect.innerHTML += `<option value="${k}">${k} (${v.name})</option>`;
+    });
+  }
+}
+
+// ===== New Process Modal =====
+function openNewModal() {
+  document.getElementById('newModal').classList.add('active');
+  // Reset form
+  document.getElementById('newType').value = '';
+  document.getElementById('newSeq').value = '';
+  document.getElementById('newName').value = '';
+  document.querySelector('input[name="newWCType"][value="INTERNAL"]').checked = true;
+  onNewWCTypeChange();
+  document.getElementById('newWC').value = '';
+  document.getElementById('newUnit').value = 'EA';
+  document.getElementById('newPrice').value = '';
+  document.getElementById('newTime').value = '';
+  document.getElementById('newDesc').value = '';
+  document.querySelectorAll('.newMat').forEach(cb => cb.checked = false);
+  document.getElementById('codePreviewValue').textContent = 'PRC-???-???';
+  // Clear errors
+  ['fgNewType','fgNewSeq','fgNewName','fgNewWC','fgNewPrice'].forEach(id => {
+    document.getElementById(id).classList.remove('has-error');
+  });
+}
+
+function closeNewModal() {
+  document.getElementById('newModal').classList.remove('active');
+}
+
+function updateCodePreview() {
+  const typeSelect = document.getElementById('newType');
+  const seq = document.getElementById('newSeq').value.toUpperCase();
+  const opt = typeSelect.options[typeSelect.selectedIndex];
+  const typeCode = opt && opt.dataset.code ? opt.dataset.code : '???';
+  document.getElementById('codePreviewValue').textContent = `PRC-${typeCode}-${seq || '???'}`;
+}
+
+// ===== Register =====
+function registerProcess() {
+  let valid = true;
+  const type = document.getElementById('newType').value;
+  const seq = document.getElementById('newSeq').value.trim();
+  const name = document.getElementById('newName').value.trim();
+  const wc = document.getElementById('newWC').value;
+  const priceStr = document.getElementById('newPrice').value.replace(/,/g, '');
+
+  // Validate
+  ['fgNewType','fgNewSeq','fgNewName','fgNewWC','fgNewPrice'].forEach(id => {
+    document.getElementById(id).classList.remove('has-error');
+  });
+
+  if (!type) { document.getElementById('fgNewType').classList.add('has-error'); valid = false; }
+  if (!seq) { document.getElementById('fgNewSeq').classList.add('has-error'); valid = false; }
+  if (!name) { document.getElementById('fgNewName').classList.add('has-error'); valid = false; }
+  if (!wc) { document.getElementById('fgNewWC').classList.add('has-error'); valid = false; }
+  if (!priceStr || isNaN(parseInt(priceStr))) { document.getElementById('fgNewPrice').classList.add('has-error'); valid = false; }
+
+  if (!valid) return;
+
+  const opt = document.getElementById('newType').options[document.getElementById('newType').selectedIndex];
+  const typeCode = opt.dataset.code;
+  const code = `PRC-${typeCode}-${seq.toUpperCase()}`;
+
+  // Duplicate check
+  if (processes.find(p => p.code === code)) {
+    alert(`공정코드 "${code}"가 이미 존재합니다.`);
+    return;
+  }
+
+  const newP = {
+    id: processes.length + 1,
+    code: code,
+    name: name,
+    type: type,
+    wc: wc,
+    price: parseInt(priceStr),
+    unit: document.getElementById('newUnit').value,
+    time: parseInt(document.getElementById('newTime').value) || 0,
+    desc: document.getElementById('newDesc').value,
+    materials: Array.from(document.querySelectorAll('.newMat:checked')).map(cb => cb.value),
+    status: 'ACTIVE'
+  };
+
+  processes.push(newP);
+  closeNewModal();
+  selectedProcess = newP;
+  editMode = false;
+  filterTable();
+  renderDetail();
+  showToast(`공정 "${name}"이(가) 등록되었습니다.`);
+}
+
+// ===== Price Format =====
+function formatPriceInput(el) {
+  let val = el.value.replace(/[^0-9]/g, '');
+  if (val) {
+    el.value = parseInt(val).toLocaleString();
+  }
+}
+
+// ===== Toast =====
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 24px;border-radius:6px;font-size:13px;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+  renderTable(processes);
+  // Auto-select first
+  selectProcess(processes[0]);
+});
+</script>
+
+</body>
+</html>

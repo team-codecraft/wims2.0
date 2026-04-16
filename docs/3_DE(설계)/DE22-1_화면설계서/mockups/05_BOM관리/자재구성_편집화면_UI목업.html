@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 2.0 - 자재구성(EBOM) 편집화면</title>
+<style>
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-family);
+    background: #F0F2F5;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ===== Color Tokens ===== */
+  :root {
+    --primary: #1F4E79;
+    --accent: #2E75B6;
+    --header-bg: #D6E4F0;
+    --light-bg: #F2F7FB;
+    --success: #2E7D32;
+    --success-bg: #E8F5E9;
+    --replace: #1565C0;
+    --replace-bg: #E3F2FD;
+    --danger: #C62828;
+    --danger-bg: #FFEBEE;
+    --option: #7B1FA2;
+    --option-bg: #F3E5F5;
+    --border: #E0E0E0;
+    --font-family: '맑은 고딕', 'Malgun Gothic', -apple-system, sans-serif;
+    --bg-white: #FFFFFF;
+    --bg-panel: #FAFBFC;
+    --border-light: #E8E8E8;
+    --text-primary: #212529;
+    --text-secondary: #6C757D;
+    --text-muted: #ADB5BD;
+    --hover-bg: #F5F5F5;
+    --selected-bg: #E3F2FD;
+    --warning: #FFC107;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+    --radius: 6px;
+    --radius-sm: 4px;
+  }
+
+  /* ===== Layout ===== */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ===== Top Header ===== */
+  .top-header {
+    height: 50px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .nav-item {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .nav-item.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-weight: 600;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+  }
+  .breadcrumb {
+    color: rgba(255,255,255,0.8);
+  }
+  .breadcrumb strong {
+    color: #fff;
+  }
+  .user-info {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ===== Product Info Bar ===== */
+  .product-bar {
+    background: var(--header-bg);
+    border-bottom: 1px solid #C2D4E6;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .product-info {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .product-info .info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .product-info .info-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .product-info .info-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .product-info .divider {
+    width: 1px;
+    height: 20px;
+    background: #B0C4D8;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .status-badge.editing {
+    background: #FFF3CD;
+    color: #856404;
+    border: 1px solid #FFEEBA;
+  }
+  .status-badge.editing::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #FFC107;
+  }
+  .product-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 6px 12px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    background: var(--bg-white);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #F8F9FA; border-color: var(--primary); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--primary); border-color: var(--primary); }
+  .btn-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* ===== Toolbar ===== */
+  .toolbar {
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 24px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .toolbar .btn {
+    padding: 5px 10px;
+    font-size: 11px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .toolbar .btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+  }
+  .toolbar .separator {
+    width: 1px;
+    height: 20px;
+    background: var(--border-light);
+    margin: 0 4px;
+  }
+  .toolbar .search-box {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .toolbar .search-box input {
+    border: none;
+    padding: 5px 10px;
+    font-size: 12px;
+    width: 200px;
+    outline: none;
+    font-family: inherit;
+  }
+  .toolbar .search-box button {
+    border: none;
+    background: var(--hover-bg);
+    padding: 5px 10px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+
+  /* ===== Main Content ===== */
+  .main-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ===== Left Panel (Tree) ===== */
+  .left-panel {
+    width: 40%;
+    min-width: 360px;
+    max-width: 520px;
+    background: var(--bg-white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 8px 12px;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .panel-header h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-header .item-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+    background: rgba(255,255,255,0.6);
+    padding: 1px 8px;
+    border-radius: 10px;
+  }
+  .panel-controls {
+    display: flex;
+    gap: 4px;
+  }
+  .panel-controls button {
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+  .panel-controls button:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+  }
+
+  .tree-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .tree-container::-webkit-scrollbar { width: 6px; }
+  .tree-container::-webkit-scrollbar-track { background: transparent; }
+  .tree-container::-webkit-scrollbar-thumb { background: #CED4DA; border-radius: 3px; }
+
+  /* ===== Tree Nodes ===== */
+  .tree-node { user-select: none; }
+  .tree-node-content {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    cursor: pointer;
+    transition: background 0.1s;
+    gap: 4px;
+  }
+  .tree-node-content:hover { background: #F5F5F5; }
+  .tree-node-content.selected { background: #E3F2FD; }
+  .tree-node-content.level-0 { padding-left: 12px; }
+  .tree-node-content.level-1 { padding-left: 32px; }
+  .tree-node-content.level-2 { padding-left: 52px; }
+
+  .tree-toggle {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 10px;
+    color: var(--text-secondary);
+    transition: transform 0.15s;
+    border-radius: 3px;
+  }
+  .tree-toggle:hover { background: rgba(0,0,0,0.06); }
+  .tree-toggle.expanded { transform: rotate(90deg); }
+  .tree-toggle.empty { visibility: hidden; }
+
+  .tree-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+    margin-right: 4px;
+  }
+
+  .tree-label {
+    flex: 1;
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tree-label .code {
+    color: var(--text-secondary);
+    font-family: 'Consolas', 'SF Mono', monospace;
+    font-size: 11px;
+    margin-right: 6px;
+  }
+  .tree-label .name {
+    color: var(--text-primary);
+  }
+  .level-0 .tree-label .name { font-weight: 700; }
+  .level-1 .tree-label .name { font-weight: 600; color: var(--primary); }
+  .level-2 .tree-label .name { font-weight: 400; }
+
+  .tree-badge {
+    flex-shrink: 0;
+    margin-left: 4px;
+  }
+  .tree-qty {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: #E0E0E0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+  .option-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--option);
+    background: var(--option-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* ===== Right Panel (Detail) ===== */
+  .right-panel {
+    flex: 1;
+    background: var(--bg-panel);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .detail-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+  }
+  .detail-container::-webkit-scrollbar { width: 6px; }
+  .detail-container::-webkit-scrollbar-track { background: transparent; }
+  .detail-container::-webkit-scrollbar-thumb { background: #CED4DA; border-radius: 3px; }
+
+  /* Empty State */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state .message { font-size: 14px; margin-bottom: 4px; }
+  .empty-state .sub { font-size: 12px; }
+
+  /* Detail Header */
+  .detail-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .detail-title-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .detail-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .detail-icon.structural { background: #E8F4FD; }
+  .detail-icon.glazing { background: #E8F8F0; }
+  .detail-icon.operation { background: #FFF3E0; }
+  .detail-icon.sealing { background: #F3E8F9; }
+  .detail-icon.screen { background: #E8EAF6; }
+  .detail-icon.product { background: var(--header-bg); }
+  .detail-icon.part { background: #F1F3F5; }
+
+  .detail-title h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .detail-title .detail-code {
+    font-size: 12px;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    color: var(--accent);
+  }
+
+  .detail-level-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .detail-level-badge.l0 { background: var(--header-bg); color: var(--primary); }
+  .detail-level-badge.l1 { background: #E3F0FC; color: var(--accent); }
+  .detail-level-badge.l2 { background: #F1F3F5; color: var(--text-secondary); }
+
+  /* Info Cards */
+  .info-section {
+    margin-bottom: 20px;
+  }
+  .info-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--header-bg);
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .info-cell {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .info-cell:nth-child(odd) { border-right: 1px solid var(--border-light); }
+  .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .info-cell.full-width {
+    grid-column: 1 / -1;
+    border-right: none;
+  }
+  .info-cell .cell-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .info-cell .cell-value {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .info-cell .cell-value.mono {
+    font-family: 'Consolas', 'SF Mono', monospace;
+    color: var(--accent);
+  }
+
+  /* Option Influence Panel */
+  .option-influence-card {
+    background: var(--option-bg);
+    border: 1px solid var(--option);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-top: 10px;
+  }
+  .option-influence-card .card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--option);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .option-influence-card .option-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.7);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+  }
+  .option-influence-card .option-item:last-child { margin-bottom: 0; }
+  .option-influence-card .option-code {
+    font-family: 'Consolas', 'SF Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--option);
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--option);
+  }
+  .option-influence-card .option-desc {
+    font-size: 12px;
+    color: #555;
+  }
+
+  /* Children Table */
+  .children-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 12px;
+  }
+  .children-table thead th {
+    background: var(--header-bg);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .children-table tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #E8E8E8;
+    color: var(--text-primary);
+  }
+  .children-table tbody tr:last-child td { border-bottom: none; }
+  .children-table tbody tr:nth-child(even) td { background: #F8FAFC; }
+  .children-table tbody tr:hover { background: var(--hover-bg); }
+  .children-table tbody tr { cursor: pointer; height: 36px; }
+  .children-table .code-cell {
+    font-family: 'Consolas', 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* Substitute Parts */
+  .substitute-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .substitute-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light);
+    gap: 12px;
+  }
+  .substitute-item:last-child { border-bottom: none; }
+  .substitute-item .sub-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #FFF3E0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .substitute-item .sub-info {
+    flex: 1;
+  }
+  .substitute-item .sub-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .substitute-item .sub-code {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: 'Consolas', 'SF Mono', monospace;
+  }
+  .substitute-item .sub-relation {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #E8F4FD;
+    color: var(--accent);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* Category tag colors */
+  .category-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .cat-frame { background: #E8F4FD; color: #1565C0; }
+  .cat-raw { background: #E8F8F0; color: #2E7D32; }
+  .cat-sub { background: #FFF3E0; color: #E65100; }
+  .cat-seal { background: #F3E8F9; color: #7B2D8E; }
+  .cat-screen { background: #E8EAF6; color: #283593; }
+  .cat-func { background: #E3F0FC; color: var(--accent); }
+
+  /* ===== Resize Handle ===== */
+  .resize-handle {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 32px;
+    background: var(--border);
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .resize-handle:hover::after { opacity: 1; }
+
+  /* ===== Status Bar ===== */
+  .status-bar {
+    background: var(--bg-white);
+    border-top: 1px solid var(--border);
+    padding: 4px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .status-bar .status-left { display: flex; gap: 16px; align-items: center; }
+  .status-bar .status-right { display: flex; gap: 16px; align-items: center; }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }
+  .status-dot.green { background: var(--success); }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Top Navigation -->
+  <header class="top-header">
+    <div class="header-left">
+      <span class="logo">WIMS 2.0</span>
+      <nav class="header-nav">
+        <a href="#" class="nav-item active">제품관리</a>
+        <a href="#" class="nav-item">견적설계</a>
+        <a href="#" class="nav-item">발주관리</a>
+        <a href="#" class="nav-item">제조관리</a>
+        <a href="#" class="nav-item">시스템</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="breadcrumb">제품관리 &gt; <strong>자재구성(EBOM) 편집</strong></span>
+      <span class="user-info">김지광</span>
+    </div>
+  </header>
+
+  <!-- Product Info Bar -->
+  <div class="product-bar">
+    <div class="product-info">
+      <div class="info-item">
+        <span class="info-label">제품코드</span>
+        <span class="info-value" style="font-family: Consolas, monospace;">PRD-SLD-DW</span>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <span class="info-label">제품명</span>
+        <span class="info-value">미서기 이중창</span>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <span class="info-label">BOM 유형</span>
+        <span class="info-value">자재구성(EBOM)</span>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <span class="info-label">버전</span>
+        <span class="info-value">v1.0</span>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <span class="status-badge editing">편집 중</span>
+      </div>
+    </div>
+    <div class="product-actions">
+      <button class="btn"><span class="btn-icon">&#x1F4CB;</span> 이력</button>
+      <button class="btn"><span class="btn-icon">&#x2B07;</span> 내보내기</button>
+      <button class="btn btn-primary"><span class="btn-icon">&#x2714;</span> 저장</button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn" title="전체 펼치기" onclick="expandAll()">&#x25BC; 전체 펼치기</button>
+    <button class="btn" title="전체 접기" onclick="collapseAll()">&#x25B6; 전체 접기</button>
+    <div class="separator"></div>
+    <button class="btn" title="부품 추가">+ 부품 추가</button>
+    <button class="btn" title="기능군 추가">+ 기능군 추가</button>
+    <div class="separator"></div>
+    <button class="btn" title="삭제">&#x1F5D1; 삭제</button>
+    <button class="btn" title="복사">&#x1F4CB; 복사</button>
+    <div class="separator"></div>
+    <button class="btn" title="옵션 영향 필터" onclick="toggleOptionFilter()" id="optionFilterBtn">&#x1F7E3; 옵션 영향 품목만</button>
+    <div class="search-box">
+      <input type="text" placeholder="품목코드 또는 품목명 검색..." id="searchInput" oninput="filterTree()">
+      <button>&#x1F50D;</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Left Panel: Tree -->
+    <div class="left-panel" id="leftPanel">
+      <div class="panel-header">
+        <h3>
+          &#x1F4C2; BOM 구조 트리
+          <span class="item-count" id="itemCount">15개 품목</span>
+        </h3>
+        <div class="panel-controls">
+          <button title="정렬" onclick="expandAll()">&#x2195;</button>
+        </div>
+      </div>
+      <div class="tree-container" id="treeContainer"></div>
+    </div>
+
+    <!-- Resize Handle -->
+    <div class="resize-handle" id="resizeHandle"></div>
+
+    <!-- Right Panel: Detail -->
+    <div class="right-panel">
+      <div class="panel-header">
+        <h3>&#x1F4CB; 부품 상세 정보</h3>
+      </div>
+      <div class="detail-container" id="detailContainer">
+        <div class="empty-state">
+          <div class="icon">&#x1F4E6;</div>
+          <div class="message">부품을 선택하세요</div>
+          <div class="sub">좌측 트리에서 품목을 클릭하면 상세 정보가 표시됩니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <span><span class="status-dot green"></span>연결됨</span>
+      <span>최종 수정: 2026-04-07 14:32</span>
+      <span>수정자: 김성현</span>
+    </div>
+    <div class="status-right">
+      <span>총 15개 품목</span>
+      <span>|</span>
+      <span>옵션 영향: 3개</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== BOM Data =====
+const bomData = {
+  id: 'PRD-SLD-DW',
+  code: 'PRD-SLD-DW',
+  name: '미서기 이중창',
+  level: 0,
+  qty: 1,
+  unit: 'SET',
+  category: '완제품',
+  categoryClass: '',
+  iconType: 'product',
+  spec: 'PVC 또는 알루미늄 프레임, 복층유리, 2중 미서기 구조',
+  description: '발코니용 미서기 이중창 완제품. 외측 2짝 + 내측 2짝 총 4짝 구성.',
+  optionInfluence: null,
+  substitutes: [],
+  children: [
+    {
+      id: 'E-STR-001',
+      code: 'E-STR-001',
+      name: '구조부 (Structural)',
+      level: 1,
+      qty: 1,
+      unit: 'SET',
+      category: '기능군',
+      categoryClass: 'cat-func',
+      iconType: 'structural',
+      spec: '창틀 프레임 및 멀리언으로 구성된 구조부 어셈블리',
+      description: '미서기 이중창의 골격을 이루는 프레임 구조부. 상틀, 하틀, 좌틀, 우틀 및 멀리언으로 구성.',
+      optionInfluence: null,
+      substitutes: [],
+      children: [
+        {
+          id: 'E-FRM-TOP', code: 'E-FRM-TOP', name: '상틀 프로파일', level: 2,
+          qty: 1, unit: 'EA', category: '프레임', categoryClass: 'cat-frame',
+          iconType: 'part',
+          spec: 'PVC 상틀 프로파일, L=제품 폭, 65mm x 45mm 단면',
+          description: '창틀 상부 프로파일. 제품 폭에 맞춰 절단하여 사용하며, 레일 2열 내장.',
+          optionInfluence: null,
+          substitutes: [
+            { code: 'E-FRM-TOP-AL', name: '상틀 프로파일 (알루미늄)', relation: '대체' }
+          ],
+          children: []
+        },
+        {
+          id: 'E-FRM-BOT', code: 'E-FRM-BOT', name: '하틀 프로파일', level: 2,
+          qty: 1, unit: 'EA', category: '프레임', categoryClass: 'cat-frame',
+          iconType: 'part',
+          spec: 'PVC 하틀 프로파일, L=제품 폭, 65mm x 55mm 단면, 레일+배수홀',
+          description: '창틀 하부 프로파일. 호차 레일과 배수홀이 포함되며 제품 폭에 맞춰 절단.',
+          optionInfluence: null, substitutes: [], children: []
+        },
+        {
+          id: 'E-FRM-LFT', code: 'E-FRM-LFT', name: '좌틀 프로파일', level: 2,
+          qty: 1, unit: 'EA', category: '프레임', categoryClass: 'cat-frame',
+          iconType: 'part',
+          spec: 'PVC 좌틀 프로파일, L=제품 높이, 65mm x 45mm 단면',
+          description: '창틀 좌측 세로 프로파일. 제품 높이에 맞춰 절단.',
+          optionInfluence: null, substitutes: [], children: []
+        },
+        {
+          id: 'E-FRM-RGT', code: 'E-FRM-RGT', name: '우틀 프로파일', level: 2,
+          qty: 1, unit: 'EA', category: '프레임', categoryClass: 'cat-frame',
+          iconType: 'part',
+          spec: 'PVC 우틀 프로파일, L=제품 높이, 65mm x 45mm 단면',
+          description: '창틀 우측 세로 프로파일. 제품 높이에 맞춰 절단.',
+          optionInfluence: null, substitutes: [], children: []
+        },
+        {
+          id: 'E-FRM-MUL', code: 'E-FRM-MUL', name: '멀리언 프로파일', level: 2,
+          qty: 1, unit: 'EA', category: '프레임', categoryClass: 'cat-frame',
+          iconType: 'part',
+          spec: 'PVC 멀리언 프로파일, L=제품 높이, 50mm x 45mm 단면',
+          description: '창틀 중앙 수직 분할재. 창짝 간 분리 역할. 레이아웃 옵션에 따라 적용 여부 결정.',
+          optionInfluence: { code: 'OPT-LAY', name: '레이아웃 옵션', description: '창짝 배치 구성(2짝/3짝/4짝)에 따라 멀리언 적용 여부 및 수량이 결정됩니다.' },
+          substitutes: [],
+          children: []
+        }
+      ]
+    },
+    {
+      id: 'E-GLZ-001',
+      code: 'E-GLZ-001',
+      name: '유리부 (Glazing)',
+      level: 1, qty: 1, unit: 'SET',
+      category: '기능군', categoryClass: 'cat-func',
+      iconType: 'glazing',
+      spec: '복층유리 유닛으로 구성된 유리부 어셈블리',
+      description: '단열 및 차음 성능을 담당하는 복층유리 어셈블리.',
+      optionInfluence: null, substitutes: [],
+      children: [
+        {
+          id: 'E-GLS-IGU', code: 'E-GLS-IGU', name: '복층유리 유닛 IGU', level: 2,
+          qty: 4, unit: 'EA', category: '원자재', categoryClass: 'cat-raw',
+          iconType: 'part',
+          spec: '5mm 투명 + 12mm 공기층 + 5mm 투명, Low-E 코팅 선택',
+          description: '이중 유리 사이 공기층을 형성하여 단열 및 결로 방지 역할. 유리 사양은 옵션에 따라 변동.',
+          optionInfluence: { code: 'OPT-GLZ', name: '유리 사양 옵션', description: '유리 두께, 코팅(Low-E, 강화), 공기층 가스 충전 등 유리 사양이 변경됩니다.' },
+          substitutes: [
+            { code: 'E-GLS-IGU-LE', name: '복층유리 유닛 IGU (Low-E)', relation: '상위 사양' },
+            { code: 'E-GLS-IGU-TM', name: '복층유리 유닛 IGU (강화)', relation: '상위 사양' }
+          ],
+          children: []
+        }
+      ]
+    },
+    {
+      id: 'E-HDW-001',
+      code: 'E-HDW-001',
+      name: '개폐부 (Operation)',
+      level: 1, qty: 1, unit: 'SET',
+      category: '기능군', categoryClass: 'cat-func',
+      iconType: 'operation',
+      spec: '창짝 개폐를 위한 호차 및 잠금 하드웨어 어셈블리',
+      description: '창짝의 좌우 슬라이딩 개폐 및 잠금 기능을 담당하는 하드웨어 세트.',
+      optionInfluence: null, substitutes: [],
+      children: [
+        {
+          id: 'E-HDW-RLR', code: 'E-HDW-RLR', name: '호차 Roller', level: 2,
+          qty: 8, unit: 'EA', category: '부자재', categoryClass: 'cat-sub',
+          iconType: 'part',
+          spec: '스테인리스 베어링 호차, 하중 15kg/EA',
+          description: '창짝 하단에 설치되어 레일 위를 굴러가는 롤러. 창짝 1짝당 2개 적용.',
+          optionInfluence: null,
+          substitutes: [
+            { code: 'E-HDW-RLR-HD', name: '호차 Roller (고하중)', relation: '대체' }
+          ],
+          children: []
+        },
+        {
+          id: 'E-HDW-CRS', code: 'E-HDW-CRS', name: '크리센트 세트', level: 2,
+          qty: 2, unit: 'SET', category: '부자재', categoryClass: 'cat-sub',
+          iconType: 'part',
+          spec: '아연합금 크리센트 Lock + Keeper, 잠금높이 조절 가능',
+          description: '내측 창짝과 외측 창짝을 잠그는 잠금장치 세트. 창짝 쌍(pair)당 1세트.',
+          optionInfluence: null, substitutes: [], children: []
+        }
+      ]
+    },
+    {
+      id: 'E-SEL-001',
+      code: 'E-SEL-001',
+      name: '밀봉부 (Sealing)',
+      level: 1, qty: 1, unit: 'SET',
+      category: '기능군', categoryClass: 'cat-func',
+      iconType: 'sealing',
+      spec: '기밀 및 수밀 성능을 위한 밀봉 자재 어셈블리',
+      description: '창틀과 창짝 사이의 기밀, 수밀, 단열 성능을 확보하는 밀봉 자재 세트.',
+      optionInfluence: null, substitutes: [],
+      children: [
+        {
+          id: 'E-SEL-MHR', code: 'E-SEL-MHR', name: '모헤어', level: 2,
+          qty: 1, unit: 'SET', category: '기밀자재', categoryClass: 'cat-seal',
+          iconType: 'part',
+          spec: 'PP 모헤어, 폭 6.8mm, L=창짝 둘레, 방풍재',
+          description: '창짝 둘레에 부착하여 바람 침투를 방지하는 섬유형 기밀재.',
+          optionInfluence: null, substitutes: [], children: []
+        },
+        {
+          id: 'E-SEL-GSK', code: 'E-SEL-GSK', name: '가스켓 EPDM', level: 2,
+          qty: 1, unit: 'SET', category: '기밀자재', categoryClass: 'cat-seal',
+          iconType: 'part',
+          spec: 'EPDM 가스켓, 유리 고정 및 수밀용, L=유리 둘레 x 4',
+          description: '복층유리를 창짝에 고정하고 수밀을 유지하는 고무 가스켓.',
+          optionInfluence: null, substitutes: [], children: []
+        }
+      ]
+    },
+    {
+      id: 'E-SCR-001',
+      code: 'E-SCR-001',
+      name: '방충부 (Screen)',
+      level: 1, qty: 1, unit: 'SET',
+      category: '기능군', categoryClass: 'cat-func',
+      iconType: 'screen',
+      spec: '방충망 프레임 및 원단으로 구성된 방충부 어셈블리',
+      description: '방충 기능을 담당하는 방충망 어셈블리. 별도 레일에 장착.',
+      optionInfluence: null, substitutes: [],
+      children: [
+        {
+          id: 'E-SCR-FRM', code: 'E-SCR-FRM', name: '방충망 프레임', level: 2,
+          qty: 1, unit: 'SET', category: '방충망', categoryClass: 'cat-screen',
+          iconType: 'part',
+          spec: '알루미늄 방충망 프레임, 18mm x 10mm 단면',
+          description: '방충망 원단을 고정하는 알루미늄 프레임. 별도 레일에 슬라이딩 장착.',
+          optionInfluence: null, substitutes: [], children: []
+        },
+        {
+          id: 'E-SCR-NET', code: 'E-SCR-NET', name: '방충망 원단', level: 2,
+          qty: 1, unit: 'EA', category: '방충망', categoryClass: 'cat-screen',
+          iconType: 'part',
+          spec: 'SUS304 스테인리스 메쉬, 18x16 메쉬',
+          description: '방충 원단. 원단 재질은 액세서리 옵션에 따라 선택 가능.',
+          optionInfluence: { code: 'OPT-ACC', name: '액세서리 옵션', description: '방충망 원단 재질(SUS/PE/미세먼지 차단)을 선택합니다.' },
+          substitutes: [
+            { code: 'E-SCR-NET-PE', name: '방충망 원단 (PE)', relation: '대체' },
+            { code: 'E-SCR-NET-FN', name: '방충망 원단 (미세먼지 차단)', relation: '상위 사양' }
+          ],
+          children: []
+        }
+      ]
+    }
+  ]
+};
+
+// ===== Icon Map =====
+const iconMap = {
+  product: '&#x1F3E0;',
+  structural: '&#x1F3D7;',
+  glazing: '&#x1FA9F;',
+  operation: '&#x2699;',
+  sealing: '&#x1F6E1;',
+  screen: '&#x1FA9F;',
+  part: '&#x1F527;',
+  folder: '&#x1F4C1;',
+  folderOpen: '&#x1F4C2;'
+};
+
+// ===== State =====
+let selectedNodeId = null;
+let expandedNodes = new Set();
+let optionFilterActive = false;
+
+// Initialize expanded state
+function initExpanded(node) {
+  if (node.children && node.children.length > 0) {
+    expandedNodes.add(node.id);
+    node.children.forEach(c => initExpanded(c));
+  }
+}
+initExpanded(bomData);
+
+// ===== Tree Rendering =====
+function renderTree() {
+  const container = document.getElementById('treeContainer');
+  container.innerHTML = '';
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+  renderNode(bomData, container, searchTerm);
+}
+
+function nodeMatchesFilter(node, searchTerm) {
+  const matchesSearch = !searchTerm ||
+    node.code.toLowerCase().includes(searchTerm) ||
+    node.name.toLowerCase().includes(searchTerm);
+  const matchesOption = !optionFilterActive || node.optionInfluence;
+  if (matchesSearch && matchesOption) return true;
+  if (node.children) {
+    return node.children.some(c => nodeMatchesFilter(c, searchTerm));
+  }
+  return false;
+}
+
+function renderNode(node, container, searchTerm) {
+  if (!nodeMatchesFilter(node, searchTerm)) return;
+
+  const el = document.createElement('div');
+  el.className = 'tree-node';
+
+  const hasChildren = node.children && node.children.length > 0;
+  const isExpanded = expandedNodes.has(node.id);
+  const isSelected = selectedNodeId === node.id;
+
+  // Node content
+  const content = document.createElement('div');
+  content.className = `tree-node-content level-${node.level}` + (isSelected ? ' selected' : '');
+
+  // Toggle
+  const toggle = document.createElement('span');
+  toggle.className = 'tree-toggle' + (hasChildren ? (isExpanded ? ' expanded' : '') : ' empty');
+  toggle.innerHTML = '&#x25B6;';
+  if (hasChildren) {
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (expandedNodes.has(node.id)) {
+        expandedNodes.delete(node.id);
+      } else {
+        expandedNodes.add(node.id);
+      }
+      renderTree();
+    });
+  }
+  content.appendChild(toggle);
+
+  // Icon
+  const icon = document.createElement('span');
+  icon.className = 'tree-icon';
+  if (node.level === 1 && hasChildren) {
+    icon.innerHTML = isExpanded ? iconMap.folderOpen : iconMap.folder;
+  } else if (node.level === 0) {
+    icon.innerHTML = iconMap.product;
+  } else {
+    icon.innerHTML = iconMap[node.iconType] || iconMap.part;
+  }
+  content.appendChild(icon);
+
+  // Label
+  const label = document.createElement('span');
+  label.className = 'tree-label';
+  label.innerHTML = `<span class="code">${node.code}</span><span class="name">${node.name}</span>`;
+  content.appendChild(label);
+
+  // Quantity badge
+  if (node.level >= 1) {
+    const qty = document.createElement('span');
+    qty.className = 'tree-qty';
+    qty.textContent = `${node.qty} ${node.unit}`;
+    content.appendChild(qty);
+  }
+
+  // Option tag
+  if (node.optionInfluence) {
+    const tag = document.createElement('span');
+    tag.className = 'option-tag';
+    tag.textContent = node.optionInfluence.code;
+    content.appendChild(tag);
+  }
+
+  // Click to select
+  content.addEventListener('click', () => {
+    selectedNodeId = node.id;
+    renderTree();
+    renderDetail(node);
+  });
+
+  el.appendChild(content);
+
+  // Children
+  if (hasChildren && isExpanded) {
+    const childContainer = document.createElement('div');
+    childContainer.className = 'tree-children';
+    node.children.forEach(child => renderNode(child, childContainer, searchTerm));
+    el.appendChild(childContainer);
+  }
+
+  container.appendChild(el);
+}
+
+// ===== Detail Rendering =====
+function renderDetail(node) {
+  const container = document.getElementById('detailContainer');
+
+  let iconClass = node.iconType;
+  if (node.level === 2) iconClass = 'part';
+
+  let levelText = node.level === 0 ? 'Level 0 - 완제품' : node.level === 1 ? 'Level 1 - 기능군' : 'Level 2 - 부품';
+  let levelClass = 'l' + node.level;
+
+  let html = `
+    <div class="detail-header">
+      <div class="detail-title-area">
+        <div class="detail-icon ${iconClass}">
+          ${node.level === 1 ? iconMap.folderOpen : (node.level === 0 ? iconMap.product : iconMap[node.iconType] || iconMap.part)}
+        </div>
+        <div class="detail-title">
+          <h2>${node.name}</h2>
+          <span class="detail-code">${node.code}</span>
+        </div>
+      </div>
+      <span class="detail-level-badge ${levelClass}">${levelText}</span>
+    </div>
+  `;
+
+  // Basic info section
+  html += `
+    <div class="info-section">
+      <div class="info-section-title">기본 정보</div>
+      <div class="info-grid">
+        <div class="info-cell">
+          <span class="cell-label">품목코드</span>
+          <span class="cell-value mono">${node.code}</span>
+        </div>
+        <div class="info-cell">
+          <span class="cell-label">품목명</span>
+          <span class="cell-value">${node.name}</span>
+        </div>
+        <div class="info-cell">
+          <span class="cell-label">분류</span>
+          <span class="cell-value"><span class="category-tag ${node.categoryClass}">${node.category}</span></span>
+        </div>
+        <div class="info-cell">
+          <span class="cell-label">수량 / 단위</span>
+          <span class="cell-value">${node.qty} ${node.unit}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Spec section
+  html += `
+    <div class="info-section">
+      <div class="info-section-title">사양 정보</div>
+      <div class="info-grid">
+        <div class="info-cell full-width">
+          <span class="cell-label">규격</span>
+          <span class="cell-value">${node.spec}</span>
+        </div>
+        <div class="info-cell full-width">
+          <span class="cell-label">설명</span>
+          <span class="cell-value" style="font-weight:400; color: var(--text-secondary); line-height:1.6;">${node.description}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Option influence
+  if (node.optionInfluence) {
+    html += `
+      <div class="info-section">
+        <div class="info-section-title">옵션 영향</div>
+        <div class="option-influence-card">
+          <div class="card-title">&#x1F7E3; 이 품목은 옵션에 의해 영향을 받습니다</div>
+          <div class="option-item">
+            <span class="option-code">${node.optionInfluence.code}</span>
+            <span class="option-desc"><strong>${node.optionInfluence.name}</strong> &mdash; ${node.optionInfluence.description}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Children table (for Level 0 and Level 1)
+  if (node.children && node.children.length > 0) {
+    const childLabel = node.level === 0 ? '하위 기능군' : '하위 부품';
+    html += `
+      <div class="info-section">
+        <div class="info-section-title">${childLabel} (${node.children.length})</div>
+        <table class="children-table">
+          <thead>
+            <tr>
+              <th style="width:140px;">품목코드</th>
+              <th>품목명</th>
+              <th style="width:80px;">분류</th>
+              <th style="width:70px;">수량</th>
+              <th style="width:80px;">옵션 영향</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    node.children.forEach(child => {
+      html += `
+            <tr onclick="navigateToNode('${child.id}')">
+              <td class="code-cell">${child.code}</td>
+              <td>${child.name}</td>
+              <td><span class="category-tag ${child.categoryClass}">${child.category}</span></td>
+              <td>${child.qty} ${child.unit}</td>
+              <td>${child.optionInfluence ? '<span class="option-tag">' + child.optionInfluence.code + '</span>' : '<span style="color:var(--text-muted);">-</span>'}</td>
+            </tr>
+      `;
+    });
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Substitutes
+  if (node.substitutes && node.substitutes.length > 0) {
+    html += `
+      <div class="info-section">
+        <div class="info-section-title">대체 부품 관계 (${node.substitutes.length})</div>
+        <div class="substitute-card">
+    `;
+    node.substitutes.forEach(sub => {
+      html += `
+          <div class="substitute-item">
+            <div class="sub-icon">&#x1F504;</div>
+            <div class="sub-info">
+              <div class="sub-name">${sub.name}</div>
+              <div class="sub-code">${sub.code}</div>
+            </div>
+            <span class="sub-relation">${sub.relation}</span>
+          </div>
+      `;
+    });
+    html += `
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+// ===== Navigate to Node =====
+function findNode(id, node) {
+  if (node.id === id) return node;
+  if (node.children) {
+    for (const child of node.children) {
+      const found = findNode(id, child);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function navigateToNode(id) {
+  const node = findNode(id, bomData);
+  if (node) {
+    selectedNodeId = id;
+    // Ensure parent is expanded
+    expandParents(id, bomData);
+    renderTree();
+    renderDetail(node);
+  }
+}
+
+function expandParents(targetId, node, path) {
+  path = path || [];
+  if (node.id === targetId) {
+    path.forEach(id => expandedNodes.add(id));
+    return true;
+  }
+  if (node.children) {
+    for (const child of node.children) {
+      if (expandParents(targetId, child, [...path, node.id])) return true;
+    }
+  }
+  return false;
+}
+
+// ===== Toolbar Actions =====
+function expandAll() {
+  function addAll(node) {
+    if (node.children && node.children.length > 0) {
+      expandedNodes.add(node.id);
+      node.children.forEach(c => addAll(c));
+    }
+  }
+  addAll(bomData);
+  renderTree();
+}
+
+function collapseAll() {
+  expandedNodes.clear();
+  expandedNodes.add(bomData.id); // Keep root expanded
+  renderTree();
+}
+
+function toggleOptionFilter() {
+  optionFilterActive = !optionFilterActive;
+  const btn = document.getElementById('optionFilterBtn');
+  if (optionFilterActive) {
+    btn.style.background = 'var(--option-purple-light)';
+    btn.style.color = 'var(--option-purple)';
+    btn.style.borderColor = 'var(--option-purple-border)';
+  } else {
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+  }
+  renderTree();
+}
+
+function filterTree() {
+  renderTree();
+}
+
+// ===== Resize Handle =====
+(function() {
+  const handle = document.getElementById('resizeHandle');
+  const leftPanel = document.getElementById('leftPanel');
+  let isResizing = false;
+
+  handle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const newWidth = e.clientX;
+    if (newWidth >= 300 && newWidth <= 600) {
+      leftPanel.style.width = newWidth + 'px';
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
+})();
+
+// ===== Init =====
+renderTree();
+</script>
+</body>
+</html>

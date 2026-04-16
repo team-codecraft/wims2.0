@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 2.0 — BOM 구성요소 가이드</title>
+<style>
+  :root {
+    --ebom: #3b82f6;
+    --ebom-bg: #eff6ff;
+    --ebom-border: #bfdbfe;
+    --mbom: #10b981;
+    --mbom-bg: #ecfdf5;
+    --mbom-border: #a7f3d0;
+    --config: #f59e0b;
+    --config-bg: #fffbeb;
+    --config-border: #fde68a;
+    --rule: #f97316;
+    --rule-bg: #fff7ed;
+    --rule-border: #fed7aa;
+    --resolved: #8b5cf6;
+    --resolved-bg: #f5f3ff;
+    --resolved-border: #c4b5fd;
+    --product: #64748b;
+    --product-bg: #f8fafc;
+    --product-border: #cbd5e1;
+    --mes: #ec4899;
+    --mes-bg: #fdf2f8;
+    --mes-border: #fbcfe8;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    line-height: 1.6;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    padding: 32px 40px 20px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: #94a3b8; }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0 40px;
+    background: #1e293b;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #94a3b8;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+  }
+  .tab:hover { color: #e2e8f0; }
+  .tab.active {
+    color: white;
+    border-bottom-color: #3b82f6;
+    background: rgba(59,130,246,.08);
+  }
+
+  .content { max-width: 1100px; margin: 0 auto; padding: 32px 40px 60px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+  }
+  .section-desc {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-bottom: 28px;
+    max-width: 700px;
+  }
+
+  /* ── Diagram (CSS layout) ── */
+  .diagram-css {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 0 auto 36px;
+    max-width: 800px;
+  }
+  .diagram-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    width: 100%;
+    position: relative;
+  }
+  .diagram-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    color: var(--gray-400);
+    font-size: 13px;
+    padding: 4px 0;
+  }
+  .diagram-arrow .arrow-line { width: 2px; height: 20px; background: var(--gray-300); }
+  .diagram-arrow .arrow-head { font-size: 16px; line-height: 1; margin-top: -2px; }
+  .diagram-arrow-label { font-size: 11px; color: var(--gray-400); font-style: italic; margin-top: 2px; }
+  .diagram-harrow {
+    display: flex;
+    align-items: center;
+    color: var(--gray-400);
+    font-size: 11px;
+    gap: 4px;
+    font-style: italic;
+  }
+  .diagram-harrow .harrow-line { width: 24px; height: 2px; background: var(--gray-300); }
+
+  .node {
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    border: 2px solid;
+    cursor: default;
+    transition: box-shadow .15s, transform .15s;
+    min-width: 140px;
+    text-align: center;
+    position: relative;
+  }
+  .node:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .node .label-kr { font-size: 15px; font-weight: 700; display: block; }
+  .node .label-en { font-size: 11px; color: var(--gray-500); display: block; margin-top: 2px; }
+
+  .node.ebom { background: var(--ebom-bg); border-color: var(--ebom-border); }
+  .node.mbom { background: var(--mbom-bg); border-color: var(--mbom-border); }
+  .node.config { background: var(--config-bg); border-color: var(--config-border); }
+  .node.rule { background: var(--rule-bg); border-color: var(--rule-border); }
+  .node.resolved { background: var(--resolved-bg); border-color: var(--resolved-border); }
+  .node.product { background: var(--product-bg); border-color: var(--product-border); }
+  .node.mes { background: var(--mes-bg); border-color: var(--mes-border); }
+
+  .tooltip {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gray-900);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom-color: var(--gray-900);
+  }
+  .node:hover .tooltip { display: block; }
+
+  /* ── Cards ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p, .card li { font-size: 13px; color: var(--gray-600); }
+  .card ul { padding-left: 18px; margin-top: 6px; }
+  .card li { margin-bottom: 3px; }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .dot.ebom { background: var(--ebom); }
+  .dot.mbom { background: var(--mbom); }
+  .dot.config { background: var(--config); }
+  .dot.rule { background: var(--rule); }
+  .dot.resolved { background: var(--resolved); }
+  .dot.product { background: var(--product); }
+  .dot.mes { background: var(--mes); }
+
+  /* ── Timeline ── */
+  .timeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin: 20px 0 32px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+  }
+  .tl-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    cursor: pointer;
+    position: relative;
+  }
+  .tl-circle {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border: 3px solid var(--gray-300);
+    background: white;
+    transition: all .15s;
+    position: relative;
+    z-index: 1;
+  }
+  .tl-step.active .tl-circle,
+  .tl-step:hover .tl-circle {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  .tl-label {
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .tl-sublabel {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--gray-500);
+  }
+  .tl-connector {
+    flex: 0 0 36px;
+    height: 3px;
+    background: var(--gray-200);
+    margin-top: 21px;
+  }
+
+  .tl-detail {
+    display: none;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-top: 8px;
+    box-shadow: var(--shadow);
+  }
+  .tl-detail.active { display: block; }
+  .tl-detail h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .tl-detail p { font-size: 13px; color: var(--gray-600); margin-bottom: 6px; }
+  .tl-detail .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .badge-draft { background: #fef3c7; color: #92400e; }
+  .badge-resolved { background: #ddd6fe; color: #5b21b6; }
+  .badge-released { background: #d1fae5; color: #065f46; }
+  .badge-deprecated { background: #fee2e2; color: #991b1b; }
+
+  /* ── ID Anatomy ── */
+  .id-anatomy {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin: 20px 0 32px;
+  }
+  .id-row { background: white; border-radius: var(--radius); padding: 24px; border: 1px solid var(--gray-200); box-shadow: var(--shadow); }
+  .id-row h4 { font-size: 13px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; }
+  .id-segments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    margin-bottom: 14px;
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .seg {
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+  }
+  .seg:hover { transform: scale(1.05); }
+  .seg-brand { background: #dbeafe; color: #1e40af; }
+  .seg-type { background: #fce7f3; color: #9d174d; }
+  .seg-size { background: #d1fae5; color: #065f46; }
+  .seg-der { background: #fef3c7; color: #92400e; }
+  .seg-prefix { background: #e5e7eb; color: #374151; }
+  .seg-sbom { background: #dbeafe; color: #1e40af; }
+  .seg-ver { background: #d1fae5; color: #065f46; }
+  .seg-hash { background: #ede9fe; color: #5b21b6; }
+  .seg-sep { background: transparent; color: var(--gray-400); padding: 6px 2px; }
+  .seg-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--gray-600);
+  }
+  .seg-legend span { display: flex; align-items: center; gap: 5px; }
+  .seg-legend .seg { font-size: 11px; padding: 2px 8px; cursor: default; }
+
+  /* ── Version ── */
+  .ver-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0 32px;
+  }
+  @media (max-width: 768px) {
+    .ver-split { grid-template-columns: 1fr; }
+    .tabs { padding: 0 16px; }
+    .content { padding: 20px 16px 40px; }
+    .header { padding: 24px 16px 16px; }
+  }
+  .ver-box {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+  }
+  .ver-box h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .ver-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 13px;
+  }
+  .ver-item:last-child { border-bottom: none; }
+  .ver-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── Cutting ── */
+  .cut-window {
+    background: white;
+    border-radius: var(--radius);
+    padding: 32px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+    margin: 20px 0 28px;
+    position: relative;
+  }
+  .window-frame {
+    border: 3px solid #475569;
+    border-radius: 4px;
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto;
+    aspect-ratio: 4/3;
+  }
+  .frame-label {
+    position: absolute;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .frame-part {
+    position: absolute;
+    border: 2px dashed;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .frame-part:hover { opacity: .85; transform: scale(1.02); }
+  .frame-part .part-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gray-900);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 10;
+    font-weight: 400;
+  }
+  .frame-part:hover .part-tooltip { display: block; }
+
+  .dim-arrow {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray-500);
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  .flow-box {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .flow-arrow { color: var(--gray-400); font-size: 16px; }
+
+  .supply-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    font-size: 12px;
+  }
+  .supply-legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .supply-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  /* ── Prefix Table ── */
+  .prefix-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .prefix-item {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .prefix-item code {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ebom);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .prefix-item span { font-size: 11px; color: var(--gray-500); }
+
+  .callout {
+    background: #f0f9ff;
+    border-left: 3px solid #3b82f6;
+    padding: 14px 18px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 20px 0;
+    font-size: 13px;
+    color: var(--gray-700);
+  }
+  .callout strong { color: var(--gray-900); }
+
+  .category-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0;
+  }
+  .category-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--gray-100);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--gray-600);
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .category-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  .category-table tr:hover td { background: var(--gray-50); }
+  .category-table code {
+    background: var(--gray-100);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ── Examples (Tab 1) ── */
+  .examples-wrap {
+    margin: 32px 0 28px;
+    padding: 24px;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+  }
+  .examples-wrap > h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+  }
+  .examples-wrap > p.examples-case {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-bottom: 20px;
+  }
+  .examples-wrap > p.examples-case code {
+    background: var(--gray-100);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .ex-section { margin-bottom: 22px; }
+  .ex-section:last-child { margin-bottom: 0; }
+  .ex-section h4 {
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--gray-800);
+  }
+  .ex-section h4 .ex-tag {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: var(--gray-500);
+    background: var(--gray-100);
+    margin-left: auto;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 7px 10px;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--gray-500);
+    border-bottom: 1.5px solid var(--gray-200);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-700);
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 11.5px;
+  }
+  .data-table td.label { font-family: inherit; color: var(--gray-800); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table .sub { color: var(--gray-400); font-size: 10.5px; }
+  .ex-section.ebom h4 { border-left: 3px solid var(--ebom); padding-left: 10px; }
+  .ex-section.mbom h4 { border-left: 3px solid var(--mbom); padding-left: 10px; }
+  .ex-section.config h4 { border-left: 3px solid var(--config); padding-left: 10px; }
+  .ex-section.rule h4 { border-left: 3px solid var(--rule); padding-left: 10px; }
+  .ex-section.resolved h4 { border-left: 3px solid var(--resolved); padding-left: 10px; }
+
+  .data-table-wrap { overflow-x: auto; border: 1px solid var(--gray-100); border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>WIMS 2.0 — BOM 구성요소 가이드</h1>
+  <p>개발자·현업 공통 참조 자료 &nbsp;|&nbsp; 용어사전 v1.3 기준</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="tab1">구성요소 관계도</button>
+  <button class="tab" data-tab="tab2">라이프사이클</button>
+  <button class="tab" data-tab="tab3">식별자 체계</button>
+  <button class="tab" data-tab="tab4">버전 · 스냅샷</button>
+  <button class="tab" data-tab="tab5">절단 속성</button>
+</div>
+
+<div class="content">
+
+<!-- ═══════ TAB 1: 구성요소 관계도 ═══════ -->
+<div id="tab1" class="panel active">
+  <h2 class="section-title">BOM 구성요소 관계도</h2>
+  <p class="section-desc">WIMS 의 BOM 은 5개 핵심 구성요소로 이루어져 있습니다. 각 박스 위에 마우스를 올려 정의를 확인하세요.</p>
+
+  <div style="display:flex; justify-content:center; margin: 0 auto 36px;">
+    <svg viewBox="0 0 800 680" style="max-width:800px; width:100%; height:auto; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;">
+      <defs>
+        <marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto-start-reverse"><polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/></marker>
+        <filter id="shadow"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity=".08"/></filter>
+      </defs>
+
+      <!--
+        ═══════════════════════════════════════════════════════════
+        그리드 설계 (일정 간격)
+        - 노드 크기: 140 × 50
+        - 세로 Y: PRODUCT(30-80) / Row2(170-220) / Rule(310-360) / Resolved(450-500) / MES(590-640)
+        - 세로 간격: 90px 일정
+        - 가로 X 중심: left=130 / center=400 / right=670 (가로 간격 130px 일정)
+        ═══════════════════════════════════════════════════════════
+      -->
+
+      <!-- ═══ 표준BOM 점선 영역 (nodes 행만 감쌈) ═══ -->
+      <rect x="50" y="155" width="700" height="80" rx="12" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8,4"/>
+      <!-- 라벨: 점선 영역 바깥(아래)에 배치 — 겹침 방지 -->
+      <text x="400" y="255" font-size="11" fill="#64748b" text-anchor="middle" font-weight="600">표준BOM · EBOM + MBOM + Config 의 불가분 묶음</text>
+
+      <!-- ═══ 화살표 ═══ -->
+      <!-- PRODUCT(400,80) → EBOM(130,170) -->
+      <line x1="400" y1="80" x2="130" y2="168" stroke="#cbd5e1" stroke-width="2" marker-end="url(#ah)"/>
+      <!-- PRODUCT → MBOM -->
+      <line x1="400" y1="80" x2="400" y2="168" stroke="#cbd5e1" stroke-width="2" marker-end="url(#ah)"/>
+      <!-- PRODUCT → Config -->
+      <line x1="400" y1="80" x2="670" y2="168" stroke="#cbd5e1" stroke-width="2" marker-end="url(#ah)"/>
+      <!-- EBOM ↔ MBOM (양방향 점선, 매핑) -->
+      <line x1="202" y1="195" x2="328" y2="195" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="5,3" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <!-- Config → BOM Rule (수직) -->
+      <line x1="670" y1="222" x2="670" y2="308" stroke="#cbd5e1" stroke-width="2" marker-end="url(#ah)"/>
+      <!-- MBOM → Resolved (수직 직선, Base) -->
+      <line x1="400" y1="222" x2="400" y2="448" stroke="#cbd5e1" stroke-width="2" marker-end="url(#ah)"/>
+      <!-- BOM Rule → Resolved (L 경로, 우측 진입, 적용) -->
+      <path d="M 670 362 L 670 475 L 472 475" stroke="#cbd5e1" stroke-width="2" fill="none" marker-end="url(#ah)"/>
+      <!-- Resolved → MES (수직, API 조회) -->
+      <line x1="400" y1="502" x2="400" y2="588" stroke="#cbd5e1" stroke-width="2" marker-end="url(#ah)"/>
+
+      <!-- ═══ 화살표 라벨 (빈 공간에만 배치) ═══ -->
+      <!-- "소유" × 3 — PRODUCT 아래, 점선 영역 위 (y=90~150 빈 공간) -->
+      <text x="245" y="118" font-size="11" fill="#94a3b8" text-anchor="middle">소유</text>
+      <text x="412" y="128" font-size="11" fill="#94a3b8">소유</text>
+      <text x="555" y="118" font-size="11" fill="#94a3b8" text-anchor="middle">소유</text>
+      <!-- "매핑" — EBOM-MBOM 수평선 위 -->
+      <text x="265" y="188" font-size="11" fill="#94a3b8" text-anchor="middle" font-style="italic">매핑</text>
+      <!-- "옵션→규칙" — Config→Rule 수직선 우측 -->
+      <text x="680" y="268" font-size="11" fill="#94a3b8">옵션→규칙</text>
+      <!-- "Base" — MBOM→Resolved 수직선 우측, 중단 -->
+      <text x="410" y="340" font-size="11" fill="#94a3b8">Base</text>
+      <!-- "적용" — Rule→Resolved 수평 세그먼트 위, Resolved 박스 오른쪽 빈 공간 -->
+      <text x="570" y="468" font-size="11" fill="#94a3b8" text-anchor="middle">적용</text>
+      <!-- "API 조회" — Resolved→MES 수직선 우측 -->
+      <text x="412" y="548" font-size="11" fill="#94a3b8">API 조회</text>
+
+      <!-- ═══ 노드 (후순위 렌더: 화살표 위에 덮임) ═══ -->
+      <!-- PRODUCT: 중앙상단, y=30-80 -->
+      <g filter="url(#shadow)">
+        <rect x="330" y="30" width="140" height="50" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+        <text x="400" y="52" font-size="15" font-weight="700" fill="#1f2937" text-anchor="middle">제품</text>
+        <text x="400" y="69" font-size="11" fill="#6b7280" text-anchor="middle">PRODUCT</text>
+      </g>
+
+      <!-- EBOM: 좌열, y=170-220 -->
+      <g filter="url(#shadow)">
+        <rect x="60" y="170" width="140" height="50" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2"/>
+        <text x="130" y="192" font-size="15" font-weight="700" fill="#1e40af" text-anchor="middle">자재구성</text>
+        <text x="130" y="209" font-size="11" fill="#6b7280" text-anchor="middle">EBOM</text>
+      </g>
+
+      <!-- MBOM: 중열, y=170-220 -->
+      <g filter="url(#shadow)">
+        <rect x="330" y="170" width="140" height="50" rx="10" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="2"/>
+        <text x="400" y="192" font-size="15" font-weight="700" fill="#065f46" text-anchor="middle">공정구성</text>
+        <text x="400" y="209" font-size="11" fill="#6b7280" text-anchor="middle">MBOM</text>
+      </g>
+
+      <!-- Config: 우열, y=170-220 -->
+      <g filter="url(#shadow)">
+        <rect x="600" y="170" width="140" height="50" rx="10" fill="#fffbeb" stroke="#fde68a" stroke-width="2"/>
+        <text x="670" y="192" font-size="15" font-weight="700" fill="#92400e" text-anchor="middle">옵션구성</text>
+        <text x="670" y="209" font-size="11" fill="#6b7280" text-anchor="middle">Config</text>
+      </g>
+
+      <!-- BOM Rule: 우열, y=310-360 -->
+      <g filter="url(#shadow)">
+        <rect x="600" y="310" width="140" height="50" rx="10" fill="#fff7ed" stroke="#fed7aa" stroke-width="2"/>
+        <text x="670" y="332" font-size="15" font-weight="700" fill="#9a3412" text-anchor="middle">옵션별규칙</text>
+        <text x="670" y="349" font-size="11" fill="#6b7280" text-anchor="middle">BOM Rule</text>
+      </g>
+
+      <!-- Resolved BOM: 중열, y=450-500 -->
+      <g filter="url(#shadow)">
+        <rect x="330" y="450" width="140" height="50" rx="10" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/>
+        <text x="400" y="472" font-size="15" font-weight="700" fill="#5b21b6" text-anchor="middle">확정구성표</text>
+        <text x="400" y="489" font-size="11" fill="#6b7280" text-anchor="middle">Resolved BOM</text>
+      </g>
+
+      <!-- MES: 중열, y=590-640 -->
+      <g filter="url(#shadow)">
+        <rect x="330" y="590" width="140" height="50" rx="10" fill="#fdf2f8" stroke="#fbcfe8" stroke-width="2"/>
+        <text x="400" y="612" font-size="15" font-weight="700" fill="#9d174d" text-anchor="middle">MES</text>
+        <text x="400" y="629" font-size="11" fill="#6b7280" text-anchor="middle">생산시스템</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="callout">
+    <strong>핵심 개념:</strong> 표준BOM = EBOM + MBOM + Config 를 하나로 묶은 것입니다. 이 셋은 분리 불가하며, 어느 하나라도 바뀌면 <code>standardBomVersion</code> 이 +1 됩니다.
+  </div>
+
+  <div class="examples-wrap">
+    <h3>📋 실제 데이터 예시</h3>
+    <p class="examples-case">케이스: <code>DHS-AE225-D-1</code> · 계열 <code>225-마스</code> · 레이아웃 <code>W2XH1-정</code> · 치수 <code>W=1500, H=1200</code></p>
+
+    <!-- ═══ EBOM ═══ -->
+    <div class="ex-section ebom">
+      <h4><span class="dot ebom"></span> 자재구성 (EBOM) <span class="ex-tag">기능군별 자재 목록</span></h4>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>기능군</th><th>itemCode</th><th>명칭</th><th>수량</th></tr></thead>
+          <tbody>
+            <tr><td class="label">구조부 <span class="sub">(E-STR)</span></td><td>FRM-225-후렘</td><td class="label">후렘</td><td>1</td></tr>
+            <tr><td class="label">구조부 <span class="sub">(E-STR)</span></td><td>FRM-225-중간바</td><td class="label">중간바</td><td>1</td></tr>
+            <tr><td class="label">유리부 <span class="sub">(E-GLZ)</span></td><td>GLS-복층-22</td><td class="label">복층유리 22T</td><td>2</td></tr>
+            <tr><td class="label">개폐부 <span class="sub">(E-HDW)</span></td><td>HDW-핸들-A</td><td class="label">핸들</td><td>2</td></tr>
+            <tr><td class="label">밀봉부 <span class="sub">(E-SEL)</span></td><td>SEL-가스켓-10</td><td class="label">가스켓</td><td>1 세트</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ MBOM ═══ -->
+    <div class="ex-section mbom">
+      <h4><span class="dot mbom"></span> 공정구성 (MBOM) <span class="ex-tag">공정·절단 속성 포함</span></h4>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>공정</th><th>itemCode</th><th>cutDirection</th><th>cutLengthFormula</th><th>cutQtyFormula</th><th>supplyDivision</th></tr></thead>
+          <tbody>
+            <tr><td class="label">프레임절단</td><td>FRM-225-후렘</td><td>W</td><td>W - 94</td><td>2</td><td class="label">공통</td></tr>
+            <tr><td class="label">프레임절단</td><td>FRM-225-후렘</td><td>H</td><td>H - 94</td><td>2</td><td class="label">공통</td></tr>
+            <tr><td class="label">프레임절단</td><td>FRM-225-중간바</td><td>H</td><td>H - 94</td><td>1</td><td class="label">공통</td></tr>
+            <tr><td class="label">유리가공</td><td>GLS-복층-22</td><td>W (1차)</td><td>W/2 - 60</td><td>2</td><td class="label">외창</td></tr>
+            <tr><td class="label">유리가공</td><td>GLS-복층-22</td><td>H (2차)</td><td>H - 60 <span class="sub">(_formula_2)</span></td><td>—</td><td class="label">외창</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Config ═══ -->
+    <div class="ex-section config">
+      <h4><span class="dot config"></span> 옵션구성 (Config) <span class="ex-tag">선택된 옵션 조합</span></h4>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>optionKey</th><th>value</th><th>valueType</th><th>비고</th></tr></thead>
+          <tbody>
+            <tr><td>OPT-LAY</td><td>W2XH1-정</td><td>ENUM</td><td class="label">레이아웃</td></tr>
+            <tr><td>OPT-DIM-W</td><td>1500</td><td>NUMERIC</td><td class="label">가로 치수 (mm)</td></tr>
+            <tr><td>OPT-DIM-H</td><td>1200</td><td>NUMERIC</td><td class="label">세로 치수 (mm)</td></tr>
+            <tr><td>OPT-GLZ</td><td>복층-22</td><td>ENUM</td><td class="label">유리 사양</td></tr>
+            <tr><td>OPT-MAT</td><td>마스</td><td>ENUM</td><td class="label">계약구분</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:11px; color:var(--gray-500); margin-top:8px;">상태: <code style="font-size:10.5px;">DRAFT → RESOLVED → RELEASED</code> &nbsp;|&nbsp; 상태가 RESOLVED 로 전환될 때 Rule 이 적용됨</p>
+    </div>
+
+    <!-- ═══ BOM Rule ═══ -->
+    <div class="ex-section rule">
+      <h4><span class="dot rule"></span> 옵션별규칙 (BOM Rule) <span class="ex-tag">when + action 쌍</span></h4>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>when (조건)</th><th>verb</th><th>target / field</th><th>value</th></tr></thead>
+          <tbody>
+            <tr><td>series = '225-마스'</td><td>SET</td><td>FRM-225-후렘 . cut_length_formula</td><td>W - 94</td></tr>
+            <tr><td>series = '225-마스'</td><td>SET</td><td>FRM-225-중간바 . cut_length_formula</td><td>H - 94</td></tr>
+            <tr><td>OPT-LAY = 'W2XH1-정'</td><td>SET</td><td>FRM-225-중간바 . cut_qty_formula</td><td>1</td></tr>
+            <tr><td>OPT-GLZ = '복층-22'</td><td>REPLACE</td><td>GLS-삼중-24 → GLS-복층-22</td><td>—</td></tr>
+            <tr><td>OPT-LAY = 'W2XH1-정' AND H ≥ 900</td><td>ADD</td><td>SCR-225-방충망 (SCREEN)</td><td>cutQty = 2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Resolved BOM ═══ -->
+    <div class="ex-section resolved">
+      <h4><span class="dot resolved"></span> 확정구성표 (Resolved BOM) <span class="ex-tag">산식 평가 완료 · frozen 후 불변</span></h4>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>itemCode</th><th>cutDirection</th><th>cutLengthEvaluated (mm)</th><th>cutQtyEvaluated</th><th>actualCutLength <span class="sub">(lossRate=2%)</span></th><th>supplyDivision</th></tr></thead>
+          <tbody>
+            <tr><td>FRM-225-후렘</td><td>W</td><td><strong>1406</strong> <span class="sub">= 1500 - 94</span></td><td>2</td><td>1434</td><td class="label">공통</td></tr>
+            <tr><td>FRM-225-후렘</td><td>H</td><td><strong>1106</strong> <span class="sub">= 1200 - 94</span></td><td>2</td><td>1128</td><td class="label">공통</td></tr>
+            <tr><td>FRM-225-중간바</td><td>H</td><td><strong>1106</strong></td><td>1</td><td>1128</td><td class="label">공통</td></tr>
+            <tr><td>GLS-복층-22</td><td>W × H</td><td><strong>690 × 1140</strong> <span class="sub">= W/2-60, H-60</span></td><td>2</td><td>703 × 1163</td><td class="label">외창</td></tr>
+            <tr><td>SCR-225-방충망</td><td>—</td><td>—</td><td>2</td><td>—</td><td class="label">외창</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:11px; color:var(--gray-500); margin-top:8px;"><code style="font-size:10.5px;">resolvedBomId</code>: <code style="font-size:10.5px;">RBOM-DHS-AE225-D-1-sbv3-a1b2c3d4</code> &nbsp;|&nbsp; 이 값이 MES 에 전달됨</p>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="dot ebom"></span> 자재구성 (EBOM)</h3>
+      <p>"이 창호에 어떤 부품이 들어가나?"</p>
+      <ul>
+        <li>기능 단위로 분해: 구조부(프레임), 유리부, 개폐부(철물), 밀봉부, 방충부</li>
+        <li>설계 관점의 구성 — "무엇이 필요한가"</li>
+        <li>MBOM 과 다대다 매핑</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot mbom"></span> 공정구성 (MBOM)</h3>
+      <p>"공장에서 어떤 순서로 만드나?"</p>
+      <ul>
+        <li>공정 단위로 분해: 프레임 절단 → 조립 → 유리 삽입 → …</li>
+        <li>제조 관점의 구성 — "어떻게 만드는가"</li>
+        <li>절단 속성(방향·산식·수량)을 직접 보유</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot config"></span> 옵션구성 (Config)</h3>
+      <p>"고객이 어떤 사양을 선택했나?"</p>
+      <ul>
+        <li>레이아웃(W2XH1-정), 치수(W=1500, H=1200), 유리 종류 등</li>
+        <li>ENUM 옵션(선택형) + NUMERIC 옵션(수치 입력)</li>
+        <li>상태: DRAFT → RESOLVED → RELEASED</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot rule"></span> 옵션별규칙 (BOM Rule)</h3>
+      <p>"옵션에 따라 BOM을 어떻게 바꾸나?"</p>
+      <ul>
+        <li>조건(when) + 동작(action) 쌍</li>
+        <li>4가지 동사: SET(값 설정), REPLACE(부품 교체), ADD(행 추가), REMOVE(행 삭제)</li>
+        <li>산식 포함 가능: <code>W - 94</code>, <code>IIF(H≥900, 2, 0)</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot resolved"></span> 확정구성표 (Resolved BOM)</h3>
+      <p>"최종적으로 공장에 내려가는 BOM"</p>
+      <ul>
+        <li>Base MBOM + Rule 적용 결과</li>
+        <li>산식이 실제 수치로 평가된 상태</li>
+        <li>frozen 후 불변 — MES는 이 값을 신뢰</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="dot mes"></span> MES (생산시스템)</h3>
+      <p>"확정구성표를 받아 실제로 생산하는 외부 시스템"</p>
+      <ul>
+        <li>Resolved BOM을 API로 조회 (GET 전용)</li>
+        <li>절단 치수·수량 snapshot 값을 그대로 사용</li>
+        <li>권한: <code>ROLE_MES_READER</code></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TAB 2: 라이프사이클 ═══════ -->
+<div id="tab2" class="panel">
+  <h2 class="section-title">BOM 라이프사이클</h2>
+  <p class="section-desc">제품 등록부터 MES 조회까지, BOM이 거치는 전체 흐름입니다. 각 단계를 클릭해 상세 내용을 확인하세요.</p>
+
+  <div class="timeline">
+    <div class="tl-step active" data-step="s1">
+      <div class="tl-circle">📦</div>
+      <div class="tl-label">제품 등록<br><span class="tl-sublabel">PRODUCT</span></div>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-step" data-step="s2">
+      <div class="tl-circle">🔧</div>
+      <div class="tl-label">BOM 구성<br><span class="tl-sublabel">EBOM + MBOM</span></div>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-step" data-step="s3">
+      <div class="tl-circle">⚙️</div>
+      <div class="tl-label">옵션 선택<br><span class="tl-sublabel">DRAFT</span></div>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-step" data-step="s4">
+      <div class="tl-circle">🔄</div>
+      <div class="tl-label">Rule 적용<br><span class="tl-sublabel">RESOLVED</span></div>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-step" data-step="s5">
+      <div class="tl-circle">✅</div>
+      <div class="tl-label">확정<br><span class="tl-sublabel">RELEASED</span></div>
+    </div>
+    <div class="tl-connector"></div>
+    <div class="tl-step" data-step="s6">
+      <div class="tl-circle">🏭</div>
+      <div class="tl-label">MES 조회<br><span class="tl-sublabel">생산</span></div>
+    </div>
+  </div>
+
+  <div id="s1" class="tl-detail active">
+    <h4>📦 제품 등록</h4>
+    <p>모델코드(예: <code>DHS-AE225-D-1</code>)로 제품 마스터를 등록합니다.</p>
+    <p>제품 분류 4축: <strong>대분류</strong>(미서기/커튼월) → <strong>계약구분</strong>(마스/우수) → <strong>유리사양</strong>(삼중/복층) → <strong>치수크기</strong></p>
+    <p>파생제품은 기본제품을 참조하고 차이만 Rule 로 표현합니다.</p>
+  </div>
+  <div id="s2" class="tl-detail">
+    <h4>🔧 BOM 구성 (EBOM + MBOM)</h4>
+    <p><strong>EBOM</strong>: "어떤 부품이 필요한가" — 기능군(구조부·유리부·개폐부·밀봉부·방충부)별 자재 목록</p>
+    <p><strong>MBOM</strong>: "어떻게 만드는가" — 공정별 자재 + 절단 속성(방향·산식·수량)</p>
+    <p>EBOM ↔ MBOM 은 <code>EBOM_MBOM_MAP</code> 으로 다대다 매핑. 하나의 EBOM 자재가 여러 MBOM 공정에 쓰일 수 있습니다.</p>
+  </div>
+  <div id="s3" class="tl-detail">
+    <h4>⚙️ 옵션 선택 (DRAFT)</h4>
+    <p><span class="badge badge-draft">DRAFT</span> 견적 단계에서 고객 요구에 맞는 옵션을 선택합니다.</p>
+    <p>옵션 예시: 레이아웃(<code>W2XH1-정</code>), 가로 치수(<code>W=1500</code>), 세로 치수(<code>H=1200</code>)</p>
+    <p>이 단계에서는 Resolved BOM row 를 만들지 않고 <strong>계산만 수행</strong>합니다 (프리뷰). DRAFT 취소 시 DB 쓰레기가 남지 않습니다.</p>
+  </div>
+  <div id="s4" class="tl-detail">
+    <h4>🔄 Rule 적용 (RESOLVED)</h4>
+    <p><span class="badge badge-resolved">RESOLVED</span> 선택된 옵션 조합에 매칭되는 BOM Rule 을 순서대로 적용합니다.</p>
+    <p>예: 계열이 <code>225-마스</code>이면 후렘 절단 산식을 <code>W - 94</code>로 SET</p>
+    <p>산식이 실제 수치로 평가됩니다: <code>W - 94</code> → W=1500일 때 → <strong>1406mm</strong></p>
+    <p>결과는 <code>cut_length_evaluated</code> 등 snapshot 필드에 저장됩니다.</p>
+  </div>
+  <div id="s5" class="tl-detail">
+    <h4>✅ 확정 (RELEASED / frozen)</h4>
+    <p><span class="badge badge-released">RELEASED</span> 3가지 트리거 중 하나가 발생하면 <strong>frozen = TRUE</strong> 로 전환됩니다:</p>
+    <p>&nbsp;&nbsp;• <strong>T1</strong> 견적서 CONFIRMED (견적설계 서브시스템)<br>
+       &nbsp;&nbsp;• <strong>T2</strong> 작업지시 RELEASED (제조관리 서브시스템)<br>
+       &nbsp;&nbsp;• <strong>T3</strong> PM UI "확정" 버튼 (제품관리 서브시스템)</p>
+    <p>frozen 후에는 산식 상수가 바뀌어도 <strong>snapshot 값은 불변</strong>. 재평가가 필요하면 DEPRECATED 처리 후 신규 버전을 생성합니다.</p>
+  </div>
+  <div id="s6" class="tl-detail">
+    <h4>🏭 MES 조회 (생산)</h4>
+    <p>MES 시스템이 <code>GET /api/external/v1/bom/resolved/{resolvedBomId}</code> 로 확정구성표를 조회합니다.</p>
+    <p>응답에 절단 속성(방향·길이·수량의 평가 결과)이 포함되어 바로 작업지시로 활용됩니다.</p>
+    <p><span class="badge badge-deprecated">DEPRECATED</span> 상태가 되면 신규 바인딩은 불가하고 이력 조회만 가능합니다.</p>
+  </div>
+</div>
+
+<!-- ═══════ TAB 3: 식별자 체계 ═══════ -->
+<div id="tab3" class="panel">
+  <h2 class="section-title">식별자 체계</h2>
+  <p class="section-desc">BOM 에서 사용하는 주요 ID 의 구조와 의미입니다. 각 세그먼트를 클릭해 의미를 확인하세요.</p>
+
+  <div class="id-anatomy">
+
+    <div class="id-row">
+      <h4>모델코드 (modelCode) — 제품 식별</h4>
+      <div class="id-segments">
+        <span class="seg seg-brand">DHS</span>
+        <span class="seg seg-sep">-</span>
+        <span class="seg seg-type">AE</span>
+        <span class="seg seg-size">225</span>
+        <span class="seg seg-sep">-</span>
+        <span class="seg seg-der">D</span>
+        <span class="seg seg-sep">-</span>
+        <span class="seg seg-der">1</span>
+      </div>
+      <div class="seg-legend">
+        <span><span class="seg seg-brand">DHS</span> 브랜드 (DHS/UNI/U-P)</span>
+        <span><span class="seg seg-type">AE</span> 제품유형 (AE=미서기/SM=시스템/CW=커튼월)</span>
+        <span><span class="seg seg-size">225</span> 프로파일 폭(mm)</span>
+        <span><span class="seg seg-der">D-1</span> 파생 순번</span>
+      </div>
+    </div>
+
+    <div class="id-row">
+      <h4>표준BOM ID (standardBomId) — BOM 묶음 식별</h4>
+      <div class="id-segments">
+        <span class="seg seg-sbom">DHS-AE225-D-1</span>
+      </div>
+      <p style="font-size:13px; color:var(--gray-600); margin-top:10px;">모델코드와 동일한 값. 버전 불변. <code>standardBomVersion</code> (정수)이 별도로 EBOM/MBOM/Config 묶음 버전을 추적합니다.</p>
+    </div>
+
+    <div class="id-row">
+      <h4>확정BOM ID (resolvedBomId) — 확정구성표 식별</h4>
+      <div class="id-segments">
+        <span class="seg seg-prefix">RBOM</span>
+        <span class="seg seg-sep">-</span>
+        <span class="seg seg-sbom">DHS-AE225-D-1</span>
+        <span class="seg seg-sep">-</span>
+        <span class="seg seg-ver">sbv3</span>
+        <span class="seg seg-sep">-</span>
+        <span class="seg seg-hash">a1b2c3d4</span>
+      </div>
+      <div class="seg-legend">
+        <span><span class="seg seg-prefix">RBOM</span> 고정 접두어</span>
+        <span><span class="seg seg-sbom">DHS-AE225-D-1</span> standardBomId</span>
+        <span><span class="seg seg-ver">sbv3</span> standardBomVersion</span>
+        <span><span class="seg seg-hash">a1b2c3d4</span> optionsHash (ENUM 옵션만)</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px; font-weight:700; margin: 24px 0 12px;">자재코드 접두사 (itemCode)</h3>
+  <p style="font-size:13px; color:var(--gray-600); margin-bottom:12px;">모든 자재·공정·조립체는 접두사로 종류를 구분합니다.</p>
+  <div class="prefix-grid">
+    <div class="prefix-item"><code>PRD</code><span>완제품</span></div>
+    <div class="prefix-item"><code>ASY</code><span>조립체</span></div>
+    <div class="prefix-item"><code>FRM</code><span>프레임</span></div>
+    <div class="prefix-item"><code>GLS</code><span>유리</span></div>
+    <div class="prefix-item"><code>HDW</code><span>철물</span></div>
+    <div class="prefix-item"><code>SEL</code><span>밀봉재</span></div>
+    <div class="prefix-item"><code>SCR</code><span>방충망</span></div>
+    <div class="prefix-item"><code>MAT</code><span>기타자재</span></div>
+  </div>
+
+  <h3 style="font-size:15px; font-weight:700; margin: 24px 0 12px;">자재 카테고리 (itemCategory)</h3>
+  <p style="font-size:13px; color:var(--gray-600); margin-bottom:12px;">Resolved BOM 산출 로직이 카테고리별로 분기됩니다.</p>
+  <table class="category-table">
+    <thead><tr><th>카테고리</th><th>대상</th><th>절단</th><th>lossRate 적용</th></tr></thead>
+    <tbody>
+      <tr><td><code>PROFILE</code></td><td>알루미늄 프로파일</td><td>1차원 (길이)</td><td>길이에 적용</td></tr>
+      <tr><td><code>GLASS</code></td><td>유리</td><td>2차원 (가로×세로)</td><td>각 축 독립 적용</td></tr>
+      <tr><td><code>HARDWARE</code></td><td>철물 (핸들, 경첩 등)</td><td>없음 (개수 고정)</td><td>수량에 적용</td></tr>
+      <tr><td><code>CONSUMABLE</code></td><td>나사, 실리콘 등</td><td>없음 (수량 산식)</td><td>수량에 적용</td></tr>
+      <tr><td><code>SEALANT</code></td><td>밀봉재</td><td>1차원 (길이)</td><td>길이에 적용</td></tr>
+      <tr><td><code>SCREEN</code></td><td>방충망</td><td>없음 (조건부 수량)</td><td>수량에 적용</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════ TAB 4: 버전 · 스냅샷 ═══════ -->
+<div id="tab4" class="panel">
+  <h2 class="section-title">버전 · 스냅샷</h2>
+  <p class="section-desc">BOM 의 변경 추적과 확정(frozen) 후 불변성 보장 메커니즘입니다.</p>
+
+  <div class="ver-split">
+    <div class="ver-box">
+      <h4>📐 standardBomVersion — 통합 버전</h4>
+      <p style="font-size:13px; color:var(--gray-600); margin-bottom:14px;">EBOM, MBOM, Config 중 <strong>어느 하나라도</strong> 변경되면 +1 증가합니다.</p>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:var(--ebom-bg); color:var(--ebom);">E</div>
+        <div><strong>EBOM 변경</strong> → version +1</div>
+      </div>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:var(--mbom-bg); color:var(--mbom);">M</div>
+        <div><strong>MBOM 변경</strong> → version +1</div>
+      </div>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:var(--config-bg); color:var(--config);">C</div>
+        <div><strong>Config 변경</strong> → version +1</div>
+      </div>
+      <p style="font-size:12px; color:var(--gray-500); margin-top:12px;"><code>changedComponents</code> 필드에 어떤 것이 바뀌었는지 기록됩니다.</p>
+    </div>
+
+    <div class="ver-box">
+      <h4>🔒 frozen — 확정 후 불변</h4>
+      <p style="font-size:13px; color:var(--gray-600); margin-bottom:14px;">frozen=TRUE 이후 다음 필드는 <strong>절대 변경 불가</strong>:</p>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:#fee2e2; color:#dc2626;">🔒</div>
+        <div><code>cut_length_evaluated</code> — 절단 길이 결과</div>
+      </div>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:#fee2e2; color:#dc2626;">🔒</div>
+        <div><code>cut_length_evaluated_2</code> — 2차 절단 길이</div>
+      </div>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:#fee2e2; color:#dc2626;">🔒</div>
+        <div><code>cut_qty_evaluated</code> — 절단 수량</div>
+      </div>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:#fee2e2; color:#dc2626;">🔒</div>
+        <div><code>actual_qty</code>, <code>actual_cut_length</code></div>
+      </div>
+      <div class="ver-item">
+        <div class="ver-icon" style="background:#fee2e2; color:#dc2626;">🔒</div>
+        <div><code>rule_engine_version</code></div>
+      </div>
+      <p style="font-size:12px; color:var(--gray-500); margin-top:12px;">재평가 필요 시 → DEPRECATED 처리 후 신규 버전 생성</p>
+    </div>
+  </div>
+
+  <div class="ver-box" style="margin-bottom: 28px;">
+    <h4>🔑 optionsHash — 옵션 조합 해시</h4>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:12px;">
+      <div style="flex:1; min-width:280px;">
+        <p style="font-size:13px; color:var(--gray-600); margin-bottom:10px;"><strong>계산 방식:</strong></p>
+        <div class="flow-row">
+          <span class="flow-box" style="background:var(--config-bg); color:#92400e;">appliedOptions</span>
+          <span class="flow-arrow">→</span>
+          <span style="font-size:13px;">ENUM 만 추출</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-box" style="background:var(--resolved-bg); color:#5b21b6;">SHA-256 앞 8자</span>
+        </div>
+        <p style="font-size:12px; color:var(--gray-500); margin-top:8px;">NUMERIC 옵션(W, H 등)은 해시에서 <strong>제외</strong> — 카디널리티 폭발 방지</p>
+      </div>
+      <div style="flex:1; min-width:280px;">
+        <p style="font-size:13px; color:var(--gray-600); margin-bottom:10px;"><strong>결과:</strong></p>
+        <p style="font-size:13px;">W=1500, H=1200 과 W=1501, H=1201 은 <strong>같은 resolvedBomId</strong> 로 수렴</p>
+        <p style="font-size:12px; color:var(--gray-500); margin-top:6px;">같은 제품·같은 ENUM 옵션이면 1개 논리 BOM. 실제 치수는 <code>appliedOptions</code> 에 저장, <code>cut_length_evaluated</code> 로 평가·스냅샷.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>lazy 생성 정책:</strong> DRAFT 단계에서는 RESOLVED_BOM row 를 만들지 않습니다. T1(견적 확정) 또는 T2(작업지시) 트리거 시점에만 INSERT. DRAFT 취소 시 DB 쓰레기가 남지 않습니다.
+  </div>
+</div>
+
+<!-- ═══════ TAB 5: 절단 속성 ═══════ -->
+<div id="tab5" class="panel">
+  <h2 class="section-title">절단 속성</h2>
+  <p class="section-desc">MBOM 각 행에 포함된 절단 정보가 어떻게 평가되어 MES 로 전달되는지 보여줍니다.</p>
+
+  <div class="cut-window">
+    <h4 style="font-size:14px; margin-bottom:16px; text-align:center;">미서기 창호 단면 — 225-마스, W2XH1-정 (W=1500, H=1200)</h4>
+    <div class="window-frame" style="max-width:500px; height:340px;">
+      <!-- Top frame -->
+      <div class="frame-part" style="top:0; left:0; right:0; height:32px; background:rgba(59,130,246,.12); border-color:var(--ebom); font-size:13px;">
+        후렘 상 (W방향)
+        <div class="part-tooltip">cutDirection=W | formula=W-94 | 결과=1406mm | 수량=1</div>
+      </div>
+      <!-- Bottom frame -->
+      <div class="frame-part" style="bottom:0; left:0; right:0; height:32px; background:rgba(59,130,246,.12); border-color:var(--ebom); font-size:13px;">
+        후렘 하 (W방향)
+        <div class="part-tooltip">cutDirection=W | formula=W-94 | 결과=1406mm | 수량=1</div>
+      </div>
+      <!-- Left frame -->
+      <div class="frame-part" style="top:32px; left:0; bottom:32px; width:32px; background:rgba(16,185,129,.12); border-color:var(--mbom); writing-mode:vertical-rl; font-size:12px;">
+        좌(H)
+        <div class="part-tooltip">cutDirection=H | formula=H-94 | 결과=1106mm | 수량=1</div>
+      </div>
+      <!-- Right frame -->
+      <div class="frame-part" style="top:32px; right:0; bottom:32px; width:32px; background:rgba(16,185,129,.12); border-color:var(--mbom); writing-mode:vertical-rl; font-size:12px;">
+        우(H)
+        <div class="part-tooltip">cutDirection=H | formula=H-94 | 결과=1106mm | 수량=1</div>
+      </div>
+      <!-- Center divider -->
+      <div class="frame-part" style="top:32px; left:50%; bottom:32px; width:24px; transform:translateX(-50%); background:rgba(249,115,22,.12); border-color:var(--rule); writing-mode:vertical-rl; font-size:12px;">
+        중간(H)
+        <div class="part-tooltip">cutDirection=H | formula=H-94 | 결과=1106mm | supplyDivision=공통</div>
+      </div>
+      <!-- Glass left -->
+      <div class="frame-part" style="top:36px; left:36px; right:calc(50% + 16px); bottom:36px; background:rgba(139,92,246,.06); border-color:var(--resolved-border); border-style:solid;">
+        <span style="font-size:12px; color:var(--gray-600); font-weight:600;">유리(외창)</span>
+        <div class="part-tooltip">GLASS | cutLength=W/2-60 | cutLength2=H-60 | supplyDivision=외창</div>
+      </div>
+      <!-- Glass right -->
+      <div class="frame-part" style="top:36px; right:36px; left:calc(50% + 16px); bottom:36px; background:rgba(139,92,246,.06); border-color:var(--resolved-border); border-style:solid;">
+        <span style="font-size:12px; color:var(--gray-600); font-weight:600;">유리(내창)</span>
+        <div class="part-tooltip">GLASS | cutLength=W/2-60 | cutLength2=H-60 | supplyDivision=내창</div>
+      </div>
+
+      <!-- Dimension arrows -->
+      <div class="dim-arrow" style="bottom:-30px; left:0; right:0; justify-content:center;">← W = 1500mm →</div>
+      <div class="dim-arrow" style="right:-60px; top:0; bottom:0; writing-mode:vertical-rl; align-items:center;">↑ H = 1200mm ↓</div>
+    </div>
+
+    <div class="supply-legend" style="justify-content:center; margin-top:40px;">
+      <span><span class="supply-dot" style="background:rgba(59,130,246,.3);"></span> 가로(W) 방향 절단</span>
+      <span><span class="supply-dot" style="background:rgba(16,185,129,.3);"></span> 세로(H) 방향 절단</span>
+      <span><span class="supply-dot" style="background:rgba(249,115,22,.3);"></span> 공통 부재</span>
+      <span><span class="supply-dot" style="background:rgba(139,92,246,.15);"></span> 유리 (2차원)</span>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px; font-weight:700; margin: 24px 0 12px;">산식 → 수치 평가 흐름</h3>
+  <div class="card" style="margin-bottom:20px;">
+    <p style="margin-bottom:12px;"><strong>예시: 후렘 상 (225-마스, W=1500)</strong></p>
+    <div class="flow-row">
+      <span class="flow-box" style="background:var(--rule-bg); color:#9a3412;">cutLengthFormula<br><code>W - 94</code></span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="background:var(--config-bg); color:#92400e;">W = 1500 주입</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="background:var(--resolved-bg); color:#5b21b6;">cutLengthEvaluated<br><strong>1406mm</strong></span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-box" style="background:var(--mbom-bg); color:#065f46;">actualCutLength<br><strong>1406 × 1.02 = 1434mm</strong></span>
+    </div>
+    <p style="font-size:12px; color:var(--gray-500); margin-top:8px;">lossRate = 0.02 (2%) 적용 예시. frozen 후에는 evaluated 값이 고정됩니다.</p>
+  </div>
+
+  <h3 style="font-size:15px; font-weight:700; margin: 24px 0 12px;">절단 속성 요약</h3>
+  <table class="category-table">
+    <thead><tr><th>속성</th><th>DB 컬럼</th><th>설명</th><th>예시</th></tr></thead>
+    <tbody>
+      <tr><td><strong>절단방향</strong></td><td><code>cut_direction</code></td><td>어느 방향으로 자르나</td><td>W, H, W1, H1</td></tr>
+      <tr><td><strong>1차 산식</strong></td><td><code>cut_length_formula</code></td><td>절단 길이 계산식</td><td><code>W - 94</code></td></tr>
+      <tr><td><strong>2차 산식</strong></td><td><code>cut_length_formula_2</code></td><td>유리 등 2차원 자재의 세로</td><td><code>H - 60</code></td></tr>
+      <tr><td><strong>수량 산식</strong></td><td><code>cut_qty_formula</code></td><td>절단 개수 계산식</td><td><code>IIF(H≥900, 2, 0)</code></td></tr>
+      <tr><td><strong>공급구분</strong></td><td><code>supply_division</code></td><td>다층 창의 창별 분리</td><td>공통, 외창, 내창</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="margin-top:24px;">
+    <strong>핵심:</strong> 절단 정보는 별도 테이블이 아니라 <strong>MBOM 각 행의 속성</strong>입니다. 같은 부재라도 방향·산식이 다르면 별도 행으로 존재합니다. (예: 후렘 상하 = W방향 2행, 후렘 좌우 = H방향 2행)
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Timeline step switching
+  document.querySelectorAll('.tl-step').forEach(step => {
+    step.addEventListener('click', () => {
+      document.querySelectorAll('.tl-step').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tl-detail').forEach(d => d.classList.remove('active'));
+      step.classList.add('active');
+      document.getElementById(step.dataset.step).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 현행 시스템 사이트맵</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif; background: #0f1117; color: #e1e4e8; min-height: 100vh; }
+
+  .header { background: linear-gradient(135deg, #1a1d29 0%, #252a3a 100%); border-bottom: 1px solid #30363d; padding: 28px 40px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #f0f6fc; letter-spacing: -0.5px; }
+  .header .meta { font-size: 13px; color: #8b949e; margin-top: 6px; }
+  .header .meta span { margin-right: 20px; }
+
+  .stats-bar { display: flex; gap: 12px; padding: 20px 40px; background: #161b22; border-bottom: 1px solid #21262d; flex-wrap: wrap; }
+  .stat-card { background: #1c2230; border: 1px solid #30363d; border-radius: 10px; padding: 14px 20px; min-width: 140px; flex: 1; }
+  .stat-card .label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; }
+  .stat-card.pm .value { color: #58a6ff; }
+  .stat-card.es .value { color: #bc8cff; }
+  .stat-card.om .value { color: #3fb950; }
+  .stat-card.cm .value { color: #f0883e; }
+  .stat-card.total .value { color: #f0f6fc; }
+  .stat-card.active .value { color: #3fb950; }
+  .stat-card.internal .value { color: #58a6ff; }
+
+  .legend { display: flex; gap: 16px; padding: 16px 40px; background: #161b22; border-bottom: 1px solid #21262d; flex-wrap: wrap; align-items: center; }
+  .legend-title { font-size: 12px; color: #8b949e; font-weight: 600; margin-right: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #c9d1d9; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-dot.active { background: #3fb950; }
+  .legend-dot.internal { background: #58a6ff; }
+  .legend-dot.gnb { background: #f0883e; border: 2px solid #f0883e; }
+
+  .subsystem-legend { display: flex; gap: 16px; padding: 8px 40px 16px; background: #161b22; border-bottom: 1px solid #21262d; flex-wrap: wrap; align-items: center; }
+  .sub-badge { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+  .sub-badge.pm { background: rgba(88,166,255,0.15); color: #58a6ff; border: 1px solid rgba(88,166,255,0.3); }
+  .sub-badge.es { background: rgba(188,140,255,0.15); color: #bc8cff; border: 1px solid rgba(188,140,255,0.3); }
+  .sub-badge.om { background: rgba(63,185,80,0.15); color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+  .sub-badge.cm { background: rgba(240,136,62,0.15); color: #f0883e; border: 1px solid rgba(240,136,62,0.3); }
+
+  .content { padding: 24px 40px 60px; }
+
+  .section { margin-bottom: 24px; }
+  .section-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #1c2230; border: 1px solid #30363d; border-radius: 10px 10px 0 0; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .section-header:hover { background: #22293a; }
+  .section-header .arrow { font-size: 12px; color: #8b949e; transition: transform 0.2s; width: 16px; }
+  .section-header.collapsed .arrow { transform: rotate(-90deg); }
+  .section-header .gnb-icon { font-size: 16px; }
+  .section-header .title { font-size: 15px; font-weight: 600; color: #f0f6fc; }
+  .section-header .path { font-size: 12px; color: #8b949e; font-family: 'SF Mono', 'Fira Code', monospace; margin-left: auto; }
+  .section-header .subsystem { margin-left: 8px; }
+
+  .section-body { border: 1px solid #30363d; border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+  .section-body.collapsed { display: none; }
+
+  .tree { padding: 8px 0; }
+  .tree-node { display: flex; align-items: flex-start; padding: 6px 20px 6px 0; transition: background 0.1s; }
+  .tree-node:hover { background: rgba(88,166,255,0.04); }
+  .tree-branch { display: flex; align-items: center; color: #30363d; font-family: monospace; white-space: pre; font-size: 13px; flex-shrink: 0; }
+  .tree-content { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .node-status { font-size: 11px; flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .node-status.active { background: rgba(63,185,80,0.15); color: #3fb950; }
+  .node-status.internal { background: rgba(88,166,255,0.15); color: #58a6ff; }
+  .node-name { font-size: 13px; font-weight: 500; color: #e1e4e8; }
+  .node-path { font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: #6e7681; margin-left: 4px; }
+  .node-tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; margin-left: 4px; }
+  .node-tag.tab { background: rgba(139,148,158,0.15); color: #8b949e; border: 1px solid rgba(139,148,158,0.2); }
+  .node-tag.detail { background: rgba(88,166,255,0.1); color: #58a6ff; border: 1px solid rgba(88,166,255,0.2); }
+  .node-tag.super { background: rgba(240,136,62,0.15); color: #f0883e; border: 1px solid rgba(240,136,62,0.2); }
+
+  .node-component { font-size: 10px; font-family: 'SF Mono', 'Fira Code', monospace; color: #484f58; margin-left: auto; padding-right: 12px; white-space: nowrap; }
+
+  .auth-section { display: flex; gap: 12px; margin-bottom: 24px; }
+  .auth-card { background: #1c2230; border: 1px solid #30363d; border-radius: 10px; padding: 16px 20px; flex: 1; }
+  .auth-card .name { font-size: 14px; font-weight: 600; color: #f0f6fc; margin-bottom: 4px; }
+  .auth-card .desc { font-size: 12px; color: #8b949e; }
+  .auth-card .route { font-size: 11px; font-family: monospace; color: #58a6ff; margin-top: 6px; }
+
+  .viewer-section { background: #1c2230; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+  .viewer-section h3 { font-size: 15px; font-weight: 600; color: #f0f6fc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .viewer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .viewer-item { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 10px 14px; }
+  .viewer-item .vi-name { font-size: 13px; font-weight: 500; color: #c9d1d9; }
+  .viewer-item .vi-path { font-size: 11px; font-family: monospace; color: #6e7681; margin-top: 3px; }
+  .viewer-item .vi-comp { font-size: 10px; font-family: monospace; color: #484f58; margin-top: 2px; }
+
+  .footer { padding: 20px 40px; border-top: 1px solid #21262d; background: #161b22; text-align: center; }
+  .footer p { font-size: 11px; color: #484f58; }
+
+  @media (max-width: 768px) {
+    .header, .stats-bar, .legend, .subsystem-legend, .content, .footer { padding-left: 16px; padding-right: 16px; }
+    .stats-bar { gap: 8px; }
+    .stat-card { min-width: 100px; padding: 10px 14px; }
+    .auth-section { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>WIMS 현행 시스템 사이트맵</h1>
+  <div class="meta">
+    <span>분석 대상: unique-fe-static (Vue.js)</span>
+    <span>분석일: 2026-03-26</span>
+    <span>미사용 페이지 5건 제외</span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-card total"><div class="label">전체 페이지</div><div class="value">50+</div></div>
+  <div class="stat-card active"><div class="label">Active (GNB)</div><div class="value">22</div></div>
+  <div class="stat-card internal"><div class="label">Internal</div><div class="value">30+</div></div>
+  <div class="stat-card pm"><div class="label">PM 제품관리</div><div class="value">16</div></div>
+  <div class="stat-card es"><div class="label">ES 견적설계</div><div class="value">20</div></div>
+  <div class="stat-card om"><div class="label">OM 발주관리</div><div class="value">14</div></div>
+  <div class="stat-card cm"><div class="label">CM 공통</div><div class="value">6</div></div>
+</div>
+
+<div class="legend">
+  <span class="legend-title">페이지 상태</span>
+  <div class="legend-item"><div class="legend-dot active"></div> ACTIVE — GNB/LNB에서 직접 접근</div>
+  <div class="legend-item"><div class="legend-dot internal"></div> INTERNAL — 프로그래밍적 이동</div>
+</div>
+
+<div class="subsystem-legend">
+  <span class="legend-title">WIMS 2.0 서브시스템</span>
+  <span class="sub-badge pm">PM 제품관리</span>
+  <span class="sub-badge es">ES 견적설계</span>
+  <span class="sub-badge om">OM 발주관리</span>
+  <span class="sub-badge cm">CM 공통</span>
+</div>
+
+<div class="content">
+
+  <!-- Auth Section -->
+  <div style="margin-bottom: 20px; font-size: 13px; color: #8b949e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">인증 (Authentication)</div>
+  <div class="auth-section">
+    <div class="auth-card">
+      <div class="name">🔐 로그인</div>
+      <div class="desc">이메일/비밀번호 세션 기반 인증</div>
+      <div class="route">/signIn → SignIn.vue</div>
+    </div>
+    <div class="auth-card">
+      <div class="name">🔐 회원가입</div>
+      <div class="desc">초대 코드 기반 회원가입</div>
+      <div class="route">/join → join.vue</div>
+    </div>
+  </div>
+
+  <!-- 1. 프로젝트관리 -->
+  <div class="section" id="sec-project">
+    <div class="section-header" onclick="toggle('sec-project')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">📋</span>
+      <span class="title">1. 프로젝트관리</span>
+      <span class="sub-badge pm subsystem">PM</span>
+      <span class="sub-badge es subsystem">ES</span>
+      <span class="path">/pages/project</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">전체 프로젝트</span><span class="node-tag tab">서브탭</span><span class="node-path">/pages/project</span><span class="node-component">ProjectList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">내 프로젝트</span><span class="node-tag tab">서브탭</span><span class="node-path">/pages/project/my</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">관심 프로젝트</span><span class="node-tag tab">서브탭</span><span class="node-path">/pages/project/favorite</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">종료 프로젝트</span><span class="node-tag tab">서브탭</span><span class="node-path">/pages/project/completed</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">프로젝트 상세</span><span class="node-tag detail">상세</span><span class="node-path">/:projectNo</span><span class="node-component">CommonInfo.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">기본정보</span><span class="node-path">(기본)</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">체크리스트</span><span class="node-path">/checklist</span><span class="node-component">CheckList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">파일관리</span><span class="node-path">/files</span><span class="node-component">FileInfo.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">견적</span><span class="node-path">/estimate</span><span class="node-component">EstimateInfo.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">발주</span><span class="node-path">/orderForm</span><span class="node-component">OrderForm.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">실행예산</span><span class="node-path">/calculate</span><span class="node-component">CalculateForm.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 자재관리 -->
+  <div class="section" id="sec-material">
+    <div class="section-header" onclick="toggle('sec-material')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">🧱</span>
+      <span class="title">2. 자재관리</span>
+      <span class="sub-badge pm subsystem">PM</span>
+      <span class="path">/pages/material</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">원자재 목록</span><span class="node-tag tab">서브탭</span><span class="node-path">/raw</span><span class="node-component">RawList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">원자재 상세</span><span class="node-path">/raw/:materialNo</span><span class="node-component">RawInfo.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">구성원자재 목록</span><span class="node-tag tab">서브탭</span><span class="node-path">/group</span><span class="node-component">GroupList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">구성원자재 상세</span><span class="node-path">/group/:groupMaterialNo</span><span class="node-component">GroupInfo.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 제품관리 -->
+  <div class="section" id="sec-product">
+    <div class="section-header" onclick="toggle('sec-product')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">🏭</span>
+      <span class="title">3. 제품관리</span>
+      <span class="sub-badge pm subsystem">PM</span>
+      <span class="path">/pages/product</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">판매 제품 목록</span><span class="node-tag tab">서브탭</span><span class="node-path">/sales</span><span class="node-component">SalesList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">판매 제품 상세</span><span class="node-path">/sales/:productNo</span><span class="node-component">SalesInfo.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">제작/시공비 설정</span><span class="node-path">/sales/cost</span><span class="node-component">salesCost.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">순번 목록</span><span class="node-tag tab">서브탭</span><span class="node-path">/sequence</span><span class="node-component">SequenceList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">순번 상세</span><span class="node-path">/sequence/:productNo</span><span class="node-component">SequenceInfo.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 견적설계 -->
+  <div class="section" id="sec-estimate">
+    <div class="section-header" onclick="toggle('sec-estimate')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">📐</span>
+      <span class="title">4. 견적설계</span>
+      <span class="sub-badge es subsystem">ES</span>
+      <span class="path">/pages/estimate/:estimateNo</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">견적설계 메인</span><span class="node-path">(기본)</span><span class="node-component">Analysis.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">설정</span><span class="node-path">/config/:productNo</span><span class="node-component">AnalysisConfig.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">계산</span><span class="node-path">/calculation</span><span class="node-component">Calculation.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">예산</span><span class="node-path">/budget/:budgetNo</span><span class="node-component">BudgetForm.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">실행</span><span class="node-path">/execution</span><span class="node-component">Execution.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">견적서</span><span class="node-path">/estimateForm</span><span class="node-component">EstimateForm.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">견적서 상세</span><span class="node-path">/estimateForm/:identificationNo</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">주문서</span><span class="node-path">/orderForm</span><span class="node-component">OrderForm.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 계약관리 -->
+  <div class="section" id="sec-contract">
+    <div class="section-header" onclick="toggle('sec-contract')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">📑</span>
+      <span class="title">5. 계약관리</span>
+      <span class="sub-badge om subsystem">OM</span>
+      <span class="path">/pages/contract</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">대시보드</span><span class="node-path">/dashboard</span><span class="node-component">dashboard.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">계약현황 목록</span><span class="node-path">/list</span><span class="node-component">list.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">계약 상세</span><span class="node-tag detail">상세</span><span class="node-path">/detail/:estimateNo</span><span class="node-component">detail.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 발주관리 -->
+  <div class="section" id="sec-order">
+    <div class="section-header" onclick="toggle('sec-order')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">📦</span>
+      <span class="title">6. 발주관리</span>
+      <span class="sub-badge om subsystem">OM</span>
+      <span class="path">/pages/order</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">발주 리스트</span><span class="node-path">/list</span><span class="node-component">list.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">발주 현황</span><span class="node-path">/pages/orderstatus</span><span class="node-component">status.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 발주서 관리 -->
+  <div class="section" id="sec-orderform">
+    <div class="section-header" onclick="toggle('sec-orderform')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">📝</span>
+      <span class="title">7. 발주서 관리</span>
+      <span class="sub-badge om subsystem">OM</span>
+      <span class="path">/pages/orderForm</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">발주서 목록</span><span class="node-path">/:orderNo</span><span class="node-component">OrderFormList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">발주서 상세</span><span class="node-tag detail">상세</span><span class="node-path">/:orderNo/details/:orderFormNo</span><span class="node-component">OrderFormInfo.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">재고 현황</span><span class="node-path">/:orderNo/stock</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 실행예산 -->
+  <div class="section" id="sec-calculate">
+    <div class="section-header" onclick="toggle('sec-calculate')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">💰</span>
+      <span class="title">8. 실행예산</span>
+      <span class="sub-badge es subsystem">ES</span>
+      <span class="path">/pages/calculate</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">별도비 시트</span><span class="node-path">/extra/:estimateExtraNo</span><span class="node-component">ExtraFormSheet.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">제작비 시트</span><span class="node-path">/manufacture</span><span class="node-component">ManufactureFormSheet.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">시공비 시트</span><span class="node-path">/construction</span><span class="node-component">ConstructionFormSheet.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">수수료 시트</span><span class="node-path">/commission</span><span class="node-component">CommissionFormSheet.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. 거래처관리 -->
+  <div class="section" id="sec-partners">
+    <div class="section-header" onclick="toggle('sec-partners')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">🤝</span>
+      <span class="title">9. 거래처관리</span>
+      <span class="sub-badge om subsystem">OM</span>
+      <span class="path">/pages/partners</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">원자재 거래처 목록</span><span class="node-tag tab">서브탭</span><span class="node-path">/material</span><span class="node-component">MaterialPartners.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:52px">└── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">거래처 상세</span><span class="node-path">/material/:partnerNo</span><span class="node-component">MaterialPartnerInfo.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. 시스템관리 -->
+  <div class="section" id="sec-system">
+    <div class="section-header" onclick="toggle('sec-system')">
+      <span class="arrow">▼</span>
+      <span class="gnb-icon">⚙️</span>
+      <span class="title">10. 시스템관리</span>
+      <span class="sub-badge cm subsystem">CM</span>
+      <span class="path">/pages/system</span>
+    </div>
+    <div class="section-body">
+      <div class="tree">
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">비밀번호 변경</span><span class="node-path">/user/password</span><span class="node-component">Password.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">사용자 관리</span><span class="node-tag super">SUPER</span><span class="node-path">/user/users</span><span class="node-component">UserList.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">├── </div><div class="tree-content"><span class="node-status internal">↗</span><span class="node-name">사용자 상세</span><span class="node-path">/user/:userNo</span><span class="node-component">UserInfo.vue</span></div></div>
+        <div class="tree-node"><div class="tree-branch" style="padding-left:20px">└── </div><div class="tree-content"><span class="node-status active">✓</span><span class="node-name">그룹 관리</span><span class="node-path">/user/group</span><span class="node-component">Group.vue</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 도면 뷰어 & 독립 페이지 -->
+  <div style="margin-top: 32px; margin-bottom: 20px; font-size: 13px; color: #8b949e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">독립 페이지 & 도면 뷰어</div>
+
+  <div class="viewer-section">
+    <h3>📐 도면 뷰어 <span class="sub-badge es">ES</span></h3>
+    <div class="viewer-grid">
+      <div class="viewer-item">
+        <div class="vi-name">도면 선택기</div>
+        <div class="vi-path">/viewer/estimate/:estimateNo/blueprint/:bpNo/selector</div>
+        <div class="vi-comp">Selector.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">섹션 뷰어 (Canvas CAD)</div>
+        <div class="vi-path">/viewer/.../section/:sectionNo</div>
+        <div class="vi-comp">Section.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">도면세트 선택기</div>
+        <div class="vi-path">/viewer/blueprintset/:ebNo/selector</div>
+        <div class="vi-comp">selectContainer.vue</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewer-section">
+    <h3>📄 문서 출력 페이지 <span class="sub-badge es">ES</span></h3>
+    <div class="viewer-grid">
+      <div class="viewer-item">
+        <div class="vi-name">식별번호표</div>
+        <div class="vi-path">/pages/estimate/:estimateNo/identification</div>
+        <div class="vi-comp">identification.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">환산표</div>
+        <div class="vi-path">/pages/estimate/:estimateNo/exchange/:productNo</div>
+        <div class="vi-comp">exchange.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">중량표</div>
+        <div class="vi-path">/pages/estimate/:estimateNo/weight</div>
+        <div class="vi-comp">weight.vue</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewer-section">
+    <h3>🔧 발주 설정 <span class="sub-badge om">OM</span></h3>
+    <div class="viewer-grid">
+      <div class="viewer-item">
+        <div class="vi-name">섹션 목록</div>
+        <div class="vi-path">/project/:projectNo/order/:orderNo</div>
+        <div class="vi-comp">SectionList.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">코팅 설정</div>
+        <div class="vi-path">/.../coat</div>
+        <div class="vi-comp">SetUpCoating.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">절단 계획</div>
+        <div class="vi-path">/.../cutting</div>
+        <div class="vi-comp">CuttingPlan.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">공정 설정</div>
+        <div class="vi-path">/.../process</div>
+        <div class="vi-comp">ProcessConfig.vue</div>
+      </div>
+      <div class="viewer-item">
+        <div class="vi-name">재고 사용</div>
+        <div class="vi-path">/.../stock</div>
+        <div class="vi-comp">StockUsage.vue</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>WIMS 2.0 현행 시스템 분석 — AN Phase (특허청 SW 개발방법론) | 미사용 페이지 5건 제외 (부자재, 단종제품, 부품거래처, 수요기관, 컴포넌트 쇼케이스)</p>
+</div>
+
+<script>
+function toggle(id) {
+  const section = document.getElementById(id);
+  const header = section.querySelector('.section-header');
+  const body = section.querySelector('.section-body');
+  header.classList.toggle('collapsed');
+  body.classList.toggle('collapsed');
+}
+</script>
+</body>
+</html>

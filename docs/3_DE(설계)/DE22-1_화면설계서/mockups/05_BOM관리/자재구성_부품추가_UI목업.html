@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 2.0 - 자재구성(EBOM) 부품 추가</title>
+<style>
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-family);
+    background: #F0F2F5;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ===== Color Tokens ===== */
+  :root {
+    --primary: #1F4E79;
+    --accent: #2E75B6;
+    --header-bg: #D6E4F0;
+    --light-bg: #F2F7FB;
+    --success: #2E7D32;
+    --success-bg: #E8F5E9;
+    --replace: #1565C0;
+    --replace-bg: #E3F2FD;
+    --danger: #C62828;
+    --danger-bg: #FFEBEE;
+    --option: #7B1FA2;
+    --option-bg: #F3E5F5;
+    --border: #E0E0E0;
+    --font-family: '맑은 고딕', 'Malgun Gothic', -apple-system, sans-serif;
+    --bg-white: #FFFFFF;
+    --bg-panel: #FAFBFC;
+    --border-light: #E8E8E8;
+    --text-primary: #212529;
+    --text-secondary: #6C757D;
+    --text-muted: #ADB5BD;
+    --hover-bg: #F5F5F5;
+    --selected-bg: #E3F2FD;
+    --warning: #FFC107;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+    --radius: 6px;
+    --radius-sm: 4px;
+  }
+
+  /* ===== Layout ===== */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ===== Top Header ===== */
+  .top-header {
+    height: 50px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .nav-item {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .nav-item.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-weight: 600;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+  }
+  .breadcrumb {
+    color: rgba(255,255,255,0.8);
+  }
+  .breadcrumb strong {
+    color: #fff;
+  }
+  .user-info {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ===== Context Bar ===== */
+  .context-bar {
+    background: var(--header-bg);
+    border-bottom: 1px solid #C2D4E6;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .context-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .context-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .context-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .context-path {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .context-path .path-icon {
+    font-size: 14px;
+  }
+  .context-path .path-arrow {
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+  .context-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .meta-item .meta-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  .meta-item .meta-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .divider {
+    width: 1px;
+    height: 20px;
+    background: #B0C4D8;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .status-badge.draft {
+    background: #FFF3CD;
+    color: #856404;
+    border: 1px solid #FFEEBA;
+  }
+  .status-badge.draft::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #FFC107;
+  }
+
+  /* ===== Main Content ===== */
+  .main-content {
+    flex: 1;
+    display: flex;
+    gap: 0;
+    padding: 16px 24px;
+    overflow: hidden;
+  }
+
+  /* ===== Panel Common ===== */
+  .panel {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel-header {
+    background: var(--header-bg);
+    padding: 10px 16px;
+    border-bottom: 1px solid #C2D4E6;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .panel-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-header .header-icon {
+    font-size: 15px;
+  }
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  /* ===== Left Panel: Search ===== */
+  .search-panel {
+    flex: 1;
+    margin-right: 16px;
+  }
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .search-input {
+    flex: 1;
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-family: var(--font-family);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(46,117,182,0.12);
+  }
+  .search-input::placeholder {
+    color: var(--text-muted);
+  }
+  .btn {
+    padding: 6px 12px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-family);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #F8F9FA; border-color: var(--primary); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--primary); border-color: var(--primary); }
+  .btn-secondary {
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { background: #F8F9FA; }
+  .btn-success {
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
+  }
+  .btn-success:hover { background: #1B5E20; border-color: #1B5E20; }
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  .btn-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* Filter Row */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .filter-group {
+    display: flex;
+    gap: 4px;
+  }
+  .filter-btn {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-family);
+  }
+  .filter-btn:hover { background: var(--hover-bg); }
+  .filter-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .filter-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-family: var(--font-family);
+    color: var(--text-primary);
+    outline: none;
+    background: var(--bg-white);
+    cursor: pointer;
+  }
+  .filter-select:focus {
+    border-color: var(--accent);
+  }
+  .filter-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-right: 4px;
+  }
+
+  /* Result Info */
+  .result-info {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .result-count {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ===== Table ===== */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .data-table thead th {
+    background: var(--light-bg);
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .data-table tbody td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: middle;
+  }
+  .data-table tbody tr {
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  .data-table tbody tr:hover {
+    background: var(--hover-bg);
+  }
+  .data-table tbody tr.selected {
+    background: var(--selected-bg);
+  }
+  .data-table tbody tr.selected td {
+    font-weight: 500;
+  }
+  .data-table input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  .item-code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .item-category {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .cat-frame { background: #E3F2FD; color: #1565C0; }
+  .cat-raw { background: #FFF3E0; color: #E65100; }
+  .cat-sub { background: #F3E5F5; color: #7B1FA2; }
+  .cat-seal { background: #E8F5E9; color: #2E7D32; }
+  .cat-glass { background: #E0F7FA; color: #00838F; }
+  .cat-hardware { background: #FBE9E7; color: #BF360C; }
+
+  .table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+  }
+
+  /* ===== Right Panel: Settings ===== */
+  .settings-panel {
+    flex: 1;
+  }
+  .selected-items-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .selected-count-badge {
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .no-selection {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+  .no-selection .no-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .no-selection .no-text {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .no-selection .no-hint {
+    font-size: 11px;
+  }
+
+  /* Selected Item Card */
+  .selected-item-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .selected-item-card:hover {
+    border-color: var(--accent);
+  }
+  .card-header {
+    background: var(--light-bg);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .card-header .card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header .card-code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .card-header .card-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .card-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .card-remove:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+  }
+  .card-body {
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+  .form-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .form-control {
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-family: var(--font-family);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-control:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(46,117,182,0.1);
+  }
+  .form-control-number {
+    width: 70px;
+    text-align: center;
+  }
+  .option-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .option-check label {
+    font-size: 11px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .option-select {
+    padding: 4px 8px;
+    border: 1px solid var(--option);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-family: var(--font-family);
+    color: var(--option);
+    background: var(--option-bg);
+    outline: none;
+    cursor: pointer;
+  }
+  .option-hidden {
+    display: none;
+  }
+
+  /* ===== Mini Tree Preview ===== */
+  .preview-section {
+    margin-top: 16px;
+  }
+  .preview-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mini-tree {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+  }
+  .tree-node {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .tree-connector {
+    color: var(--text-muted);
+    user-select: none;
+  }
+  .tree-icon {
+    font-size: 13px;
+  }
+  .tree-label {
+    color: var(--text-primary);
+  }
+  .tree-existing {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  .tree-new {
+    color: var(--success);
+    font-weight: 700;
+  }
+  .tree-new-badge {
+    display: inline-block;
+    padding: 0 5px;
+    background: var(--success-bg);
+    color: var(--success);
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    margin-left: 4px;
+    font-family: var(--font-family);
+  }
+
+  /* ===== Scrollbar Settings ===== */
+  .selected-items-list {
+    max-height: calc(100% - 200px);
+    overflow-y: auto;
+  }
+
+  /* ===== Bottom Action Bar ===== */
+  .action-bar {
+    background: var(--bg-white);
+    border-top: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.05);
+  }
+  .action-bar .action-info {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .action-bar .action-info strong {
+    color: var(--accent);
+  }
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  .btn-lg {
+    padding: 8px 24px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .modal {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    width: 420px;
+    transform: translateY(-20px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.active .modal {
+    transform: translateY(0);
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-header .modal-icon {
+    font-size: 20px;
+  }
+  .modal-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .modal-body {
+    padding: 20px;
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.7;
+  }
+  .modal-body .added-list {
+    margin: 12px 0;
+    padding: 10px 14px;
+    background: var(--success-bg);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--success);
+  }
+  .modal-body .added-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 12px;
+  }
+  .modal-body .added-item .added-code {
+    font-family: 'Consolas', monospace;
+    font-weight: 600;
+    color: var(--success);
+  }
+  .modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* Warning Modal */
+  .warning-list {
+    margin: 10px 0;
+    padding: 10px 14px;
+    background: var(--danger-bg);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--danger);
+    font-size: 12px;
+    color: var(--danger);
+  }
+
+  /* ===== Custom Scrollbar ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #C0C0C0; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #A0A0A0; }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- ===== Top Bar ===== -->
+  <header class="top-header">
+    <div class="header-left">
+      <span class="logo">WIMS 2.0</span>
+      <nav class="header-nav">
+        <a href="#" class="nav-item active">제품관리</a>
+        <a href="#" class="nav-item">견적설계</a>
+        <a href="#" class="nav-item">발주관리</a>
+        <a href="#" class="nav-item">제조관리</a>
+        <a href="#" class="nav-item">시스템</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="breadcrumb">제품관리 &gt; 자재구성(EBOM) 편집 &gt; <strong>부품 추가</strong></span>
+      <span class="user-info">김지광</span>
+    </div>
+  </header>
+
+  <!-- ===== Context Bar ===== -->
+  <div class="context-bar">
+    <div class="context-info">
+      <div>
+        <div class="context-label">추가 위치</div>
+        <div class="context-path">
+          <span class="path-icon">&#128230;</span>
+          <span class="context-value">PRD-SLD-DW 미서기 이중창</span>
+          <span class="path-arrow">&#9654;</span>
+          <span class="context-value">E-STR-001 구조부 (Structural)</span>
+        </div>
+      </div>
+    </div>
+    <div class="context-meta">
+      <div class="meta-item">
+        <span class="meta-label">자재구성(EBOM) 버전</span>
+        <span class="meta-value">v2.0</span>
+      </div>
+      <div class="divider"></div>
+      <span class="status-badge draft">DRAFT</span>
+    </div>
+  </div>
+
+  <!-- ===== Main 2-Column Layout ===== -->
+  <div class="main-content">
+    <!-- Left: Search Panel -->
+    <div class="panel search-panel">
+      <div class="panel-header">
+        <div class="header-left">
+          <span class="header-icon">&#128269;</span>
+          자재 검색
+        </div>
+        <span style="font-size:11px; color:var(--text-secondary); font-weight:400;">자재 마스터에서 부품을 검색합니다</span>
+      </div>
+      <div class="panel-body" style="display:flex; flex-direction:column;">
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <input type="text" class="search-input" id="searchInput" placeholder="품목코드 또는 품목명으로 검색..." value="">
+          <button class="btn btn-primary" onclick="doSearch()">
+            <span class="btn-icon">&#128269;</span> 검색
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-row">
+          <span class="filter-label">분류</span>
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="all" onclick="setFilter(this)">전체</button>
+            <button class="filter-btn" data-filter="frame" onclick="setFilter(this)">프레임</button>
+            <button class="filter-btn" data-filter="raw" onclick="setFilter(this)">원자재</button>
+            <button class="filter-btn" data-filter="sub" onclick="setFilter(this)">부자재</button>
+            <button class="filter-btn" data-filter="seal" onclick="setFilter(this)">기밀자재</button>
+          </div>
+          <div class="divider" style="margin:0 8px;"></div>
+          <span class="filter-label">유형</span>
+          <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+            <option value="">전체 유형</option>
+            <option value="profile">프로파일</option>
+            <option value="plate">판재</option>
+            <option value="hardware">하드웨어</option>
+            <option value="gasket">가스켓</option>
+            <option value="sealant">실란트</option>
+          </select>
+        </div>
+
+        <!-- Result Info -->
+        <div class="result-info">
+          <span>검색 결과 <span class="result-count" id="resultCount">10</span>건</span>
+          <span style="font-size:10px; color:var(--text-muted);">체크박스로 복수 선택 가능</span>
+        </div>
+
+        <!-- Result Table -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px; text-align:center;">
+                  <input type="checkbox" id="checkAll" onclick="toggleAll(this)">
+                </th>
+                <th style="width:120px;">품목코드</th>
+                <th>품목명</th>
+                <th style="width:70px;">분류</th>
+                <th style="width:40px;">단위</th>
+                <th style="width:120px;">규격</th>
+              </tr>
+            </thead>
+            <tbody id="searchResults">
+              <!-- JS로 렌더링 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Settings Panel -->
+    <div class="panel settings-panel">
+      <div class="panel-header">
+        <div class="header-left">
+          <span class="header-icon">&#9881;</span>
+          추가 설정
+        </div>
+        <span class="selected-count-badge" id="selectedCountBadge">0건 선택</span>
+      </div>
+      <div class="panel-body" style="display:flex; flex-direction:column;">
+        <!-- Selected Items -->
+        <div id="noSelection" class="no-selection">
+          <span class="no-icon">&#128203;</span>
+          <div class="no-text">선택된 부품이 없습니다</div>
+          <div class="no-hint">좌측 자재 검색 결과에서 부품을 선택해 주세요</div>
+        </div>
+
+        <div id="selectedArea" style="display:none; flex:1; overflow:hidden; display:flex; flex-direction:column;">
+          <div class="selected-items-list" id="selectedItemsList">
+            <!-- 선택된 항목 카드들 -->
+          </div>
+
+          <!-- Mini Tree Preview -->
+          <div class="preview-section" id="previewSection" style="display:none;">
+            <div class="preview-title">
+              <span>&#127795;</span> 추가 미리보기
+            </div>
+            <div class="mini-tree" id="miniTree">
+              <!-- JS로 렌더링 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Bottom Action Bar ===== -->
+  <div class="action-bar">
+    <div class="action-info">
+      <span id="actionInfoText">부품을 선택한 후 수량과 옵션을 설정하세요</span>
+    </div>
+    <div class="action-buttons">
+      <button class="btn btn-secondary btn-lg" onclick="cancelAdd()">취소</button>
+      <button class="btn btn-success btn-lg" id="addBtn" onclick="submitAdd()" disabled>
+        <span class="btn-icon">&#10010;</span> 추가
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Success Modal ===== -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-icon" style="color:var(--success);">&#9989;</span>
+      <h3>부품 추가 완료</h3>
+    </div>
+    <div class="modal-body" id="successBody">
+      <!-- JS로 렌더링 -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('successModal')">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Warning Modal ===== -->
+<div class="modal-overlay" id="warningModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-icon" style="color:var(--danger);">&#9888;</span>
+      <h3>유효성 검증 오류</h3>
+    </div>
+    <div class="modal-body" id="warningBody">
+      <!-- JS로 렌더링 -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('warningModal')">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Data =====
+const materials = [
+  { code: 'FRM-TOP-002', name: '상틀 보강재', category: 'frame', catLabel: '프레임', catClass: 'cat-frame', unit: 'EA', spec: 'AL6063-T5, L=1200' },
+  { code: 'FRM-CONN-001', name: '연결프레임', category: 'frame', catLabel: '프레임', catClass: 'cat-frame', unit: 'EA', spec: 'AL6063-T5, 50x30' },
+  { code: 'FRM-MUL-003', name: '중간틀 프로파일', category: 'frame', catLabel: '프레임', catClass: 'cat-frame', unit: 'EA', spec: 'AL6063-T5, L=900' },
+  { code: 'GLS-OUT-P2', name: '외측 판유리 6mm', category: 'raw', catLabel: '원자재', catClass: 'cat-raw', unit: 'M2', spec: '강화유리 6T, 투명' },
+  { code: 'GLS-IN-P1', name: '내측 판유리 5mm', category: 'raw', catLabel: '원자재', catClass: 'cat-raw', unit: 'M2', spec: '일반유리 5T, 투명' },
+  { code: 'GLS-SPC-AR', name: '아르곤 가스 충전', category: 'raw', catLabel: '원자재', catClass: 'cat-raw', unit: 'SET', spec: '아르곤 99.9%' },
+  { code: 'HDW-BRK-001', name: '보강 브라켓', category: 'sub', catLabel: '부자재', catClass: 'cat-sub', unit: 'EA', spec: 'SUS304, 40x40x3T' },
+  { code: 'HDW-SCR-M5', name: '체결 나사 M5x15', category: 'sub', catLabel: '부자재', catClass: 'cat-sub', unit: 'EA', spec: 'SUS, +드라이버' },
+  { code: 'SEL-THB-001', name: '단열재', category: 'seal', catLabel: '기밀자재', catClass: 'cat-seal', unit: 'M', spec: 'PA66+GF25, 폴리아미드' },
+  { code: 'SEL-WS-002', name: '풍지판 가스켓', category: 'seal', catLabel: '기밀자재', catClass: 'cat-seal', unit: 'M', spec: 'EPDM, 흑색' },
+];
+
+// 기존 EBOM 트리 노드 (구조부 하위)
+const existingNodes = [
+  { code: 'E-FRM-TOP', name: '상틀 프로파일' },
+  { code: 'E-FRM-BOT', name: '하틀 프로파일' },
+  { code: 'E-FRM-LEFT', name: '좌틀 프로파일' },
+  { code: 'E-FRM-RIGHT', name: '우틀 프로파일' },
+];
+
+// 이미 자재구성(EBOM)에 존재하는 부품 (중복 체크용)
+const existingParts = ['FRM-TOP-001', 'E-FRM-TOP', 'E-FRM-BOT'];
+
+// 선택된 부품 상태
+let selectedItems = {};
+let currentFilter = 'all';
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', function() {
+  renderSearchResults(materials);
+});
+
+// ===== Search =====
+function doSearch() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  let filtered = materials;
+  if (query) {
+    filtered = materials.filter(m =>
+      m.code.toLowerCase().includes(query) || m.name.toLowerCase().includes(query)
+    );
+  }
+  if (currentFilter !== 'all') {
+    filtered = filtered.filter(m => m.category === currentFilter);
+  }
+  renderSearchResults(filtered);
+}
+
+function setFilter(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.filter;
+  doSearch();
+}
+
+function applyFilters() {
+  doSearch();
+}
+
+// ===== Render Search Results =====
+function renderSearchResults(data) {
+  const tbody = document.getElementById('searchResults');
+  document.getElementById('resultCount').textContent = data.length;
+
+  tbody.innerHTML = data.map(item => {
+    const checked = selectedItems[item.code] ? 'checked' : '';
+    const selectedClass = selectedItems[item.code] ? 'selected' : '';
+    return `<tr class="${selectedClass}" onclick="toggleRow('${item.code}', this)">
+      <td style="text-align:center;">
+        <input type="checkbox" ${checked} onclick="event.stopPropagation(); toggleItem('${item.code}')">
+      </td>
+      <td><span class="item-code">${item.code}</span></td>
+      <td>${item.name}</td>
+      <td><span class="item-category ${item.catClass}">${item.catLabel}</span></td>
+      <td style="text-align:center;">${item.unit}</td>
+      <td style="font-size:11px; color:var(--text-secondary);">${item.spec}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleRow(code, rowEl) {
+  toggleItem(code);
+}
+
+function toggleAll(masterCb) {
+  const checkboxes = document.querySelectorAll('#searchResults input[type="checkbox"]');
+  const visibleCodes = Array.from(checkboxes).map((cb, i) => {
+    const row = cb.closest('tr');
+    const codeCell = row.querySelector('.item-code');
+    return codeCell.textContent;
+  });
+
+  if (masterCb.checked) {
+    visibleCodes.forEach(code => {
+      const mat = materials.find(m => m.code === code);
+      if (mat && !selectedItems[code]) {
+        selectedItems[code] = { ...mat, qty: 1, memo: '', optionAffected: false, optionGroup: '' };
+      }
+    });
+  } else {
+    visibleCodes.forEach(code => {
+      delete selectedItems[code];
+    });
+  }
+  refreshAll();
+}
+
+function toggleItem(code) {
+  if (selectedItems[code]) {
+    delete selectedItems[code];
+  } else {
+    const mat = materials.find(m => m.code === code);
+    if (mat) {
+      selectedItems[code] = { ...mat, qty: 1, memo: '', optionAffected: false, optionGroup: '' };
+    }
+  }
+  refreshAll();
+}
+
+function removeItem(code) {
+  delete selectedItems[code];
+  refreshAll();
+}
+
+function refreshAll() {
+  // re-render search results with updated checkboxes
+  doSearch();
+  renderSelectedItems();
+  renderMiniTree();
+  updateActionBar();
+}
+
+// ===== Render Selected Items =====
+function renderSelectedItems() {
+  const keys = Object.keys(selectedItems);
+  const count = keys.length;
+  document.getElementById('selectedCountBadge').textContent = count + '건 선택';
+
+  if (count === 0) {
+    document.getElementById('noSelection').style.display = '';
+    document.getElementById('selectedArea').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('noSelection').style.display = 'none';
+  document.getElementById('selectedArea').style.display = 'flex';
+
+  const list = document.getElementById('selectedItemsList');
+  list.innerHTML = keys.map(code => {
+    const item = selectedItems[code];
+    const optionDisplay = item.optionAffected ? '' : 'option-hidden';
+    return `<div class="selected-item-card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="card-code">${item.code}</span>
+          <span class="card-name">${item.name}</span>
+          <span class="item-category ${item.catClass}" style="margin-left:4px;">${item.catLabel}</span>
+        </div>
+        <button class="card-remove" onclick="removeItem('${code}')" title="선택 해제">&#10005;</button>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">수량</label>
+          <input type="number" class="form-control form-control-number" value="${item.qty}" min="1"
+            onchange="updateQty('${code}', this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">단위</label>
+          <input type="text" class="form-control" value="${item.unit}" style="width:60px;"
+            onchange="updateUnit('${code}', this.value)">
+        </div>
+        <div class="form-group full-width">
+          <label class="form-label">비고/메모</label>
+          <input type="text" class="form-control" value="${item.memo}" placeholder="선택사항"
+            onchange="updateMemo('${code}', this.value)">
+        </div>
+        <div class="form-group full-width">
+          <div class="option-check">
+            <input type="checkbox" id="opt_${code}" ${item.optionAffected ? 'checked' : ''}
+              onchange="toggleOption('${code}', this.checked)">
+            <label for="opt_${code}">옵션 영향 여부</label>
+            <select class="option-select ${optionDisplay}" id="optGrp_${code}"
+              onchange="updateOptionGroup('${code}', this.value)">
+              <option value="" ${item.optionGroup === '' ? 'selected' : ''}>옵션 그룹 선택</option>
+              <option value="OPT-LAY" ${item.optionGroup === 'OPT-LAY' ? 'selected' : ''}>OPT-LAY (열림방식)</option>
+              <option value="OPT-GLZ" ${item.optionGroup === 'OPT-GLZ' ? 'selected' : ''}>OPT-GLZ (유리사양)</option>
+              <option value="OPT-HDW" ${item.optionGroup === 'OPT-HDW' ? 'selected' : ''}>OPT-HDW (하드웨어)</option>
+              <option value="OPT-FIN" ${item.optionGroup === 'OPT-FIN' ? 'selected' : ''}>OPT-FIN (표면처리)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateQty(code, val) { selectedItems[code].qty = parseInt(val) || 0; updateActionBar(); }
+function updateUnit(code, val) { selectedItems[code].unit = val; }
+function updateMemo(code, val) { selectedItems[code].memo = val; }
+function toggleOption(code, checked) {
+  selectedItems[code].optionAffected = checked;
+  const grpEl = document.getElementById('optGrp_' + code);
+  if (checked) {
+    grpEl.classList.remove('option-hidden');
+  } else {
+    grpEl.classList.add('option-hidden');
+    selectedItems[code].optionGroup = '';
+  }
+}
+function updateOptionGroup(code, val) { selectedItems[code].optionGroup = val; }
+
+// ===== Mini Tree =====
+function renderMiniTree() {
+  const keys = Object.keys(selectedItems);
+  const section = document.getElementById('previewSection');
+  if (keys.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+
+  const tree = document.getElementById('miniTree');
+  let html = '';
+
+  // Root node
+  html += `<div class="tree-node">
+    <span class="tree-icon">&#128230;</span>
+    <span class="tree-label" style="font-weight:700;">E-STR-001 구조부</span>
+  </div>`;
+
+  // Existing nodes
+  const total = existingNodes.length + keys.length;
+  existingNodes.forEach((node, i) => {
+    const isLast = (i === existingNodes.length - 1) && keys.length === 0;
+    const connector = isLast ? '&#9492;&#9472;&#9472;' : '&#9500;&#9472;&#9472;';
+    html += `<div class="tree-node">
+      <span class="tree-connector">${connector}</span>
+      <span class="tree-icon">&#128196;</span>
+      <span class="tree-existing">${node.code} ${node.name}</span>
+      <span style="font-size:9px; color:var(--text-muted); font-style:italic;">(기존)</span>
+    </div>`;
+  });
+
+  // New nodes
+  keys.forEach((code, i) => {
+    const item = selectedItems[code];
+    const isLast = i === keys.length - 1;
+    const connector = isLast ? '&#9492;&#9472;&#9472;' : '&#9500;&#9472;&#9472;';
+    html += `<div class="tree-node">
+      <span class="tree-connector">${connector}</span>
+      <span class="tree-icon">&#128994;</span>
+      <span class="tree-new">${item.code} ${item.name}</span>
+      <span class="tree-new-badge">NEW</span>
+    </div>`;
+  });
+
+  tree.innerHTML = html;
+}
+
+// ===== Action Bar =====
+function updateActionBar() {
+  const keys = Object.keys(selectedItems);
+  const count = keys.length;
+  const btn = document.getElementById('addBtn');
+  const info = document.getElementById('actionInfoText');
+
+  if (count === 0) {
+    btn.disabled = true;
+    info.textContent = '부품을 선택한 후 수량과 옵션을 설정하세요';
+  } else {
+    btn.disabled = false;
+    info.innerHTML = '<strong>' + count + '개</strong> 부품이 자재구성(EBOM) 구조부에 추가됩니다';
+  }
+}
+
+// ===== Submit =====
+function submitAdd() {
+  const keys = Object.keys(selectedItems);
+  if (keys.length === 0) return;
+
+  // Validation
+  const errors = [];
+  keys.forEach(code => {
+    const item = selectedItems[code];
+    if (!item.qty || item.qty <= 0) {
+      errors.push(item.code + ' ' + item.name + ': 수량은 1 이상이어야 합니다');
+    }
+    if (existingParts.includes(code)) {
+      errors.push(item.code + ' ' + item.name + ': 이미 자재구성(EBOM)에 존재하는 부품입니다 (중복)');
+    }
+    if (item.optionAffected && !item.optionGroup) {
+      errors.push(item.code + ' ' + item.name + ': 옵션 그룹을 선택해 주세요');
+    }
+  });
+
+  if (errors.length > 0) {
+    const body = document.getElementById('warningBody');
+    body.innerHTML = '<p>다음 항목에 오류가 있습니다:</p>' +
+      '<div class="warning-list">' +
+      errors.map(e => '<div style="padding:3px 0;">&#9888; ' + e + '</div>').join('') +
+      '</div>' +
+      '<p style="font-size:12px; color:var(--text-secondary);">오류를 수정한 후 다시 시도해 주세요.</p>';
+    openModal('warningModal');
+    return;
+  }
+
+  // Success
+  const body = document.getElementById('successBody');
+  body.innerHTML = '<p>다음 부품이 <strong>E-STR-001 구조부</strong>에 성공적으로 추가되었습니다.</p>' +
+    '<div class="added-list">' +
+    keys.map(code => {
+      const item = selectedItems[code];
+      return '<div class="added-item">' +
+        '<span style="color:var(--success);">&#10003;</span> ' +
+        '<span class="added-code">' + item.code + '</span> ' +
+        item.name + ' (수량: ' + item.qty + ' ' + item.unit + ')' +
+        '</div>';
+    }).join('') +
+    '</div>' +
+    '<p style="font-size:12px; color:var(--text-secondary);">자재구성(EBOM) 편집 화면에서 추가된 부품을 확인할 수 있습니다.</p>';
+  openModal('successModal');
+}
+
+function cancelAdd() {
+  if (Object.keys(selectedItems).length > 0) {
+    if (!confirm('선택한 부품 정보가 모두 초기화됩니다. 취소하시겠습니까?')) return;
+  }
+  selectedItems = {};
+  refreshAll();
+}
+
+// ===== Modal =====
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+});
+
+// Enter key for search
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') doSearch();
+});
+</script>
+
+</body>
+</html>

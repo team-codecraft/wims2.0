@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# macOS
+.DS_Store
+
+# Obsidian personal workspace state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Claude Code local session data
+.claude/
+
+# Temporary/build outputs
+*.tmp
+*.log

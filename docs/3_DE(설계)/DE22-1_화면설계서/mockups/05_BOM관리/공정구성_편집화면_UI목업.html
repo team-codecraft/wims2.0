@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 2.0 - 공정구성 편집화면 UI 목업</title><!-- 공정구성(MBOM) 편집 -->
+<style>
+  :root {
+    --primary: #1F4E79;
+    --accent: #2E75B6;
+    --header-bg: #D6E4F0;
+    --light-bg: #F2F7FB;
+    --success: #2E7D32;
+    --success-bg: #E8F5E9;
+    --replace: #1565C0;
+    --replace-bg: #E3F2FD;
+    --danger: #C62828;
+    --danger-bg: #FFEBEE;
+    --option: #7B1FA2;
+    --option-bg: #F3E5F5;
+    --border: #E0E0E0;
+    --font-family: '맑은 고딕', 'Malgun Gothic', -apple-system, sans-serif;
+    --rule-add: #E8F5E9;
+    --rule-add-border: #4CAF50;
+    --rule-add-text: #2E7D32;
+    --rule-replace: #E3F2FD;
+    --rule-replace-border: #2196F3;
+    --rule-replace-text: #1565C0;
+    --rule-remove: #FFEBEE;
+    --rule-remove-border: #EF5350;
+    --rule-remove-text: #C62828;
+    --loss-red: #C62828;
+    --loss-bg: #FFEBEE;
+    --bg-body: #F0F2F5;
+    --bg-panel: #FFFFFF;
+    --text: #212529;
+    --text-secondary: #6C757D;
+    --text-light: #ADB5BD;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --radius: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-family);
+    background: var(--bg-body);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ===== Top Header ===== */
+  .top-header {
+    height: 50px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .nav-item {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .nav-item.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-weight: 600;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+  }
+  .breadcrumb {
+    color: rgba(255,255,255,0.8);
+  }
+  .breadcrumb strong {
+    color: #fff;
+  }
+  .user-info {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ===== TOOLBAR ===== */
+  .toolbar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .toolbar .product-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .toolbar .product-code {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--header-bg);
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  .toolbar .spacer { flex: 1; }
+  .toolbar .btn {
+    padding: 6px 12px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--accent);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all .15s;
+  }
+  .toolbar .btn:hover { background: #F8F9FA; border-color: var(--primary); }
+  .toolbar .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .toolbar .btn-primary:hover { background: var(--primary); }
+
+  /* ===== CONFIG SELECTOR ===== */
+  .config-selector {
+    background: var(--primary);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .config-selector .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    white-space: nowrap;
+  }
+  .config-selector select {
+    padding: 6px 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 13px;
+    min-width: 380px;
+    cursor: pointer;
+    outline: none;
+    font-family: var(--font-family);
+  }
+  .config-selector select:focus {
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.15);
+  }
+  .config-selector select option {
+    background: var(--primary);
+    color: #fff;
+    padding: 4px 8px;
+  }
+  .config-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .config-status.released { background: #E8F5E9; color: #2E7D32; }
+  .config-status.draft { background: #FFF3E0; color: #E65100; }
+  .config-status.base { background: #ECEFF1; color: #546E7F; }
+
+  /* ===== OPTION BAR ===== */
+  .option-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .option-bar .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    white-space: nowrap;
+  }
+  .option-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--header-bg);
+    color: var(--primary);
+    cursor: default;
+    transition: all .15s;
+  }
+  .chip .chip-icon { font-size: 11px; }
+  .chip.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .chip.base-chip {
+    background: #ECEFF1;
+    color: #546E7F;
+    border-color: #CFD8DC;
+    font-style: italic;
+  }
+  .config-code {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: #F8F9FA;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main-layout {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ===== LEFT PANEL: TREE ===== */
+  .left-panel {
+    width: 42%;
+    min-width: 360px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+  }
+  .panel-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--header-bg);
+  }
+  .panel-header .count {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    background: rgba(255,255,255,0.6);
+    padding: 1px 8px;
+    border-radius: 10px;
+  }
+  .tree-search {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tree-search input {
+    width: 100%;
+    padding: 6px 10px 6px 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 12px;
+    outline: none;
+    background: #F8F9FA url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 8px center no-repeat;
+  }
+  .tree-search input:focus {
+    border-color: var(--accent);
+    background-color: #fff;
+  }
+
+  .tree-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+
+  /* Tree Node */
+  .tree-node {
+    user-select: none;
+  }
+  .tree-row {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px 0 0;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all .1s;
+    gap: 4px;
+  }
+  .tree-row:hover { background: #F5F5F5; }
+  .tree-row.selected {
+    background: #E3F2FD;
+    border-left-color: var(--accent);
+  }
+  .tree-row.selected .node-name { font-weight: 600; }
+
+  .tree-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    transition: transform .15s;
+    cursor: pointer;
+  }
+  .tree-toggle.expanded { transform: rotate(90deg); }
+  .tree-toggle.hidden { visibility: hidden; }
+
+  .node-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .node-icon.product { background: var(--primary); color: #fff; }
+  .node-icon.assembly { background: var(--accent); color: #fff; }
+  .node-icon.part { background: #E8EDF2; color: var(--primary); }
+
+  .node-name {
+    font-size: 12.5px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .node-code {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-left: 4px;
+    white-space: nowrap;
+  }
+  .node-qty {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-left: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-left: 8px;
+  }
+  .node-process {
+    font-size: 10px;
+    color: var(--accent);
+    background: #EBF3FA;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .node-order {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-left: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Rule Badges */
+  .badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    margin-left: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-add {
+    background: var(--rule-add);
+    color: var(--rule-add-text);
+    border: 1px solid var(--rule-add-border);
+  }
+  .badge-replace {
+    background: var(--rule-replace);
+    color: var(--rule-replace-text);
+    border: 1px solid var(--rule-replace-border);
+  }
+  .badge-remove {
+    background: var(--rule-remove);
+    color: var(--rule-remove-text);
+    border: 1px solid var(--rule-remove-border);
+  }
+  .badge-loss {
+    background: #FFF3E0;
+    color: #E65100;
+    border: 1px solid #FFB74D;
+  }
+
+  /* Rule row highlighting */
+  .tree-row.rule-add { background: #F1F8F1; }
+  .tree-row.rule-add:hover { background: #E4F2E4; }
+  .tree-row.rule-add.selected { background: #D7ECD7; border-left-color: var(--rule-add-border); }
+
+  .tree-row.rule-replace { background: #EDF4FC; }
+  .tree-row.rule-replace:hover { background: #DFECF8; }
+  .tree-row.rule-replace.selected { background: #D2E4F4; border-left-color: var(--rule-replace-border); }
+
+  .tree-row.rule-remove { background: #FDF2F2; }
+  .tree-row.rule-remove:hover { background: #FCEAEA; }
+  .tree-row.rule-remove.selected { background: #F8DEDE; border-left-color: var(--rule-remove-border); }
+  .tree-row.rule-remove .node-name { text-decoration: line-through; color: var(--text-light); }
+
+  .tree-row.rule-loss-change { background: #FFF8E1; }
+  .tree-row.rule-loss-change:hover { background: #FFF3C4; }
+
+  .tree-children { display: block; }
+  .tree-children.collapsed { display: none; }
+
+  /* ===== RESIZER ===== */
+  .resizer {
+    width: 4px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .resizer:hover { background: var(--accent); }
+
+  /* ===== RIGHT PANEL: DETAIL ===== */
+  .right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-body);
+    overflow: hidden;
+  }
+  .detail-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+  .detail-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-light);
+    gap: 8px;
+  }
+  .detail-empty .icon { font-size: 36px; opacity: .4; }
+
+  /* Detail Cards */
+  .detail-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--header-bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .card-header .card-icon {
+    font-size: 14px;
+  }
+  .card-body { padding: 14px 16px; }
+
+  /* Info Grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 20px;
+  }
+  .info-item {}
+  .info-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .info-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .info-value.code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  /* Process Flow */
+  .process-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 8px 0;
+    overflow-x: auto;
+  }
+  .process-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 90px;
+  }
+  .step-box {
+    width: 80px;
+    padding: 8px 4px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    background: #fff;
+    transition: all .15s;
+  }
+  .step-box.active {
+    border-color: var(--accent);
+    background: var(--header-bg);
+    color: var(--primary);
+  }
+  .step-box .step-code {
+    font-size: 9px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    display: block;
+    margin-top: 2px;
+  }
+  .step-label {
+    font-size: 10px;
+    color: var(--text-light);
+  }
+  .process-arrow {
+    font-size: 16px;
+    color: var(--text-light);
+    flex-shrink: 0;
+    margin: 0 2px;
+    padding-bottom: 18px;
+  }
+
+  /* Loss Rate Gauge */
+  .loss-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .loss-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .loss-label {
+    font-size: 12px;
+    color: var(--text);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .loss-bar-container {
+    flex: 1;
+    height: 22px;
+    background: #F0F0F0;
+    border-radius: 11px;
+    overflow: hidden;
+    position: relative;
+  }
+  .loss-bar {
+    height: 100%;
+    border-radius: 11px;
+    transition: width .4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+  }
+  .loss-bar.low {
+    background: linear-gradient(90deg, #FFCDD2, #EF9A9A);
+  }
+  .loss-bar.medium {
+    background: linear-gradient(90deg, #FFCDD2, #E57373);
+  }
+  .loss-bar.high {
+    background: linear-gradient(90deg, #EF9A9A, #E53935);
+  }
+  .loss-bar-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: #B71C1C;
+  }
+  .loss-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--loss-red);
+    width: 50px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Qty Table */
+  .qty-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .qty-table th {
+    background: var(--header-bg);
+    border: 1px solid #E8E8E8;
+    padding: 8px 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: left;
+    font-size: 12px;
+  }
+  .qty-table td {
+    border: 1px solid #E8E8E8;
+    padding: 8px 12px;
+  }
+  .qty-table tr { height: 36px; }
+  .qty-table tr:nth-child(even) td { background: #F8FAFC; }
+  .qty-table tr:hover td { background: #F5F5F5; }
+  .qty-diff {
+    color: var(--loss-red);
+    font-weight: 600;
+  }
+  .qty-same { color: var(--text-secondary); }
+
+  /* Rule Info */
+  .rule-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 12px;
+  }
+  .rule-info.add {
+    background: var(--rule-add);
+    border: 1px solid var(--rule-add-border);
+    color: var(--rule-add-text);
+  }
+  .rule-info.replace {
+    background: var(--rule-replace);
+    border: 1px solid var(--rule-replace-border);
+    color: var(--rule-replace-text);
+  }
+  .rule-info.remove {
+    background: var(--rule-remove);
+    border: 1px solid var(--rule-remove-border);
+    color: var(--rule-remove-text);
+  }
+  .rule-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .rule-detail { flex: 1; }
+  .rule-name {
+    font-weight: 700;
+    margin-bottom: 2px;
+    font-size: 13px;
+  }
+  .rule-desc {
+    font-size: 11px;
+    opacity: .85;
+    line-height: 1.4;
+  }
+
+  /* Children Table */
+  .children-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .children-table th {
+    background: var(--header-bg);
+    border: 1px solid #E8E8E8;
+    padding: 8px 12px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: left;
+    font-size: 12px;
+  }
+  .children-table td {
+    border: 1px solid #E8E8E8;
+    padding: 8px 12px;
+  }
+  .children-table tr { height: 36px; }
+  .children-table tr:hover td { background: #F5F5F5; }
+  .children-table .row-add td { background: #F6FCF6; }
+  .children-table .row-replace td { background: #F2F8FE; }
+  .children-table .row-remove td { background: #FEF2F2; text-decoration: line-through; color: var(--text-light); }
+
+  /* Status bar */
+  .status-bar {
+    border-top: 1px solid var(--border);
+    padding: 6px 20px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #fff;
+    flex-shrink: 0;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+  }
+  .status-dot.green { background: #4CAF50; }
+  .status-dot.blue { background: #2196F3; }
+  .status-dot.orange { background: #FF9800; }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    margin-left: auto;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+  }
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .legend-swatch.add {
+    background: var(--rule-add);
+    border-color: var(--rule-add-border);
+  }
+  .legend-swatch.replace {
+    background: var(--rule-replace);
+    border-color: var(--rule-replace-border);
+  }
+  .legend-swatch.remove {
+    background: var(--rule-remove);
+    border-color: var(--rule-remove-border);
+  }
+
+  /* Work Center Type Badges */
+  .wc-badge-internal { background: #E8F5E9; color: #2E7D32; font-size: 10px; padding: 1px 4px; border-radius: 2px; font-weight: 600; white-space: nowrap; }
+  .wc-badge-external { background: #FFF3E0; color: #E65100; font-size: 10px; padding: 1px 4px; border-radius: 2px; font-weight: 600; white-space: nowrap; }
+  .wc-supplier { font-size: 10px; color: #E65100; margin-left: 2px; white-space: nowrap; }
+  .wc-external-highlight { background: #FFF8E1; border: 1px solid #FFE0B2; border-radius: 4px; padding: 4px 8px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #CCC; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #AAA; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top-header">
+  <div class="header-left">
+    <span class="logo">WIMS 2.0</span>
+    <nav class="header-nav">
+      <a href="#" class="nav-item active">제품관리</a>
+      <a href="#" class="nav-item">견적설계</a>
+      <a href="#" class="nav-item">발주관리</a>
+      <a href="#" class="nav-item">제조관리</a>
+      <a href="#" class="nav-item">시스템</a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <span class="breadcrumb">제품관리 &gt; <strong>공정구성(MBOM) 편집</strong></span>
+    <span class="user-info">김지광</span>
+  </div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="product-title">미서기 이중창 1SET</div>
+  <div class="product-code">PRD-SLD-DW</div>
+  <div class="spacer"></div>
+  <button class="btn" title="자재구성(EBOM)에서 구조 동기화">&#8635; EBOM 동기화</button>
+  <button class="btn" title="옵션별규칙 재계산">&#9881; 옵션별규칙 재계산</button>
+  <button class="btn" title="변경이력">&#128196; 변경이력</button>
+  <button class="btn" title="MES 전송">&#9654; MES 전송</button>
+  <button class="btn btn-primary" title="저장">&#128190; 저장</button>
+</div>
+
+<!-- CONFIG SELECTOR -->
+<div class="config-selector">
+  <div class="label">&#9881; 옵션구성 선택</div>
+  <select id="configSelect">
+    <option value="BASE">기본 공정구성 (옵션 미적용)</option>
+    <option value="CFG-001">CFG-001 단독/사선/일반복층/PVC/백색</option>
+    <option value="CFG-002" selected>CFG-002 2연창/직각/로이복층/AL/브라운</option>
+    <option value="CFG-003">CFG-003 3연창/사선/삼중유리/AL-TB/그레이 (DRAFT)</option>
+  </select>
+  <span class="config-status released" id="configStatusBadge">RELEASED</span>
+</div>
+
+<!-- OPTION BAR -->
+<div class="option-bar">
+  <div class="label">&#9881; 적용 옵션</div>
+  <div class="option-chips" id="optionChips">
+    <!-- 동적으로 렌더링 -->
+  </div>
+  <div class="config-code" id="configCodeLabel">CFG-002</div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+  <!-- LEFT: TREE -->
+  <div class="left-panel" id="leftPanel">
+    <div class="panel-header">
+      &#128466; 조립체 트리
+      <span class="count" id="treeCount">6개 조립체 / 15개 부품</span>
+    </div>
+    <div class="tree-search">
+      <input type="text" placeholder="품목코드 또는 품목명 검색..." id="treeSearch">
+    </div>
+    <div class="tree-container" id="treeContainer"></div>
+  </div>
+
+  <!-- RESIZER -->
+  <div class="resizer" id="resizer"></div>
+
+  <!-- RIGHT: DETAIL -->
+  <div class="right-panel" id="rightPanel">
+    <div class="panel-header">
+      &#128196; 제조 상세 정보
+    </div>
+    <div class="detail-scroll" id="detailContent">
+      <div class="detail-empty">
+        <div class="icon">&#128065;</div>
+        <div>좌측 트리에서 부품을 선택하면<br>제조 상세 정보가 표시됩니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span><span class="status-dot green" id="statusDot"></span> <span id="statusText">편집 모드</span></span>
+  <span id="statusConfig">옵션구성 코드: CFG-002</span>
+  <span>최종 수정: 2026-04-07 14:30</span>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch add"></div>옵션별규칙 추가
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch replace"></div>옵션별규칙 대체
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch remove"></div>옵션별규칙 제거
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 옵션구성 DATA SETS =====
+const bomDataSets = {
+  'BASE': {
+    name: '기본 공정구성 (옵션 미적용)',
+    status: 'BASE',
+    options: [],
+    tree: {
+      id: 'PRD-SLD-DW', name: '미서기 이중창 1SET', type: 'product', level: 0, qty: '1 SET', expanded: true,
+      children: [
+        {
+          id: 'ASY-FRM-001', name: '창틀 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-FRM', processName: '창틀조립', wcType: 'INTERNAL', workCenter: 'WC-FRAME',
+          workCenterName: '프레임 가공장', supplier: null, order: 1, expanded: true,
+          children: [
+            { id: 'FRM-TOP-001', name: '상틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'EA' },
+            { id: 'FRM-BOT-001', name: '하틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'EA' },
+            { id: 'FRM-LFT-001', name: '좌틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'EA' },
+            { id: 'FRM-RGT-001', name: '우틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'EA' }
+          ]
+        },
+        {
+          id: 'ASY-OSH-001', name: '외측 창짝 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-OSH', processName: '외측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 2, expanded: true,
+          children: [
+            { id: 'SH-FRM-OT', name: '외측 상변', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.0, theoreticalQty: 1, actualQty: 1.01, unit: 'EA' },
+            { id: 'GLS-OUT-P1', name: '외측 판유리 5mm 투명', type: 'part', level: 2, qty: '1 M2',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'M2' },
+            { id: 'GLS-SPC-01', name: '6mm 간봉', type: 'part', level: 2, qty: '1 SET' }
+          ]
+        },
+        {
+          id: 'ASY-ISH-001', name: '내측 창짝 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-ISH', processName: '내측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 3, expanded: false,
+          children: [
+            { id: 'SH-FRM-IN', name: '내측 상변', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.0, theoreticalQty: 1, actualQty: 1.01, unit: 'EA' },
+            { id: 'GLS-IN-P1', name: '내측 유리 5mm', type: 'part', level: 2, qty: '1 M2',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'M2' }
+          ]
+        },
+        {
+          id: 'ASY-HDW-001', name: '하드웨어 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-HDW', processName: '하드웨어조립', wcType: 'INTERNAL', workCenter: 'WC-HDW',
+          workCenterName: '하드웨어 작업장', supplier: null, order: 4, expanded: false,
+          children: [
+            { id: 'HDW-RLR-001', name: '호차', type: 'part', level: 2, qty: '4 EA' },
+            { id: 'HDW-CRS-001', name: '크리센트 세트', type: 'part', level: 2, qty: '1 SET' }
+          ]
+        },
+        {
+          id: 'ASY-SEL-001', name: '기밀자재 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SEL', processName: '기밀조립', wcType: 'INTERNAL', workCenter: 'WC-SEAL',
+          workCenterName: '기밀 작업장', supplier: null, order: 5, expanded: false, children: []
+        },
+        {
+          id: 'ASY-SCR-001', name: '방충망 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SCR', processName: '방충망조립', wcType: 'INTERNAL', workCenter: 'WC-SCR',
+          workCenterName: '방충망 작업장', supplier: null, order: 6, expanded: false, children: []
+        }
+      ]
+    }
+  },
+
+  'CFG-001': {
+    name: '단독/사선/일반복층/PVC/백색',
+    status: 'RELEASED',
+    options: [
+      { icon: '&#9638;', label: '단독', active: true },
+      { icon: '&#9698;', label: '사선절단', active: true },
+      { icon: '&#9672;', label: '일반복층', active: false },
+      { icon: '&#9644;', label: 'PVC', active: true },
+      { icon: '&#9632;', label: '백색', active: false }
+    ],
+    tree: {
+      id: 'PRD-SLD-DW', name: '미서기 이중창 1SET (단독)', type: 'product', level: 0, qty: '1 SET', expanded: true,
+      children: [
+        {
+          id: 'ASY-FRM-001', name: '창틀 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-FRM', processName: '창틀조립', wcType: 'INTERNAL', workCenter: 'WC-FRAME',
+          workCenterName: '프레임 가공장', supplier: null, order: 1, expanded: true,
+          children: [
+            { id: 'FRM-TOP-001', name: '상틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.5% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'FRM-BOT-001', name: '하틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.5% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'FRM-LFT-001', name: '좌틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.5% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'FRM-RGT-001', name: '우틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.5% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'MAT-WRD-001', name: '코너 용접봉', type: 'part', level: 2, qty: '16 EA',
+              rule: 'add', ruleName: 'RULE-WELD-ROD',
+              ruleDesc: '사선절단+PVC 소재 시 코너 용접봉 자동 추가 (4모서리 x 4개)',
+              ruleCondition: '절단방식 = 사선(A45) AND 소재 = PVC' },
+            { id: 'PRC-WLD-CNR', name: '코너 용접 공정', type: 'part', level: 2, qty: '1 LOT',
+              rule: 'add', ruleName: 'RULE-WELD-PROCESS',
+              ruleDesc: 'PVC+사선절단 조합 시 코너 용접 공정 추가',
+              ruleCondition: '소재 = PVC AND 절단방식 = 사선(A45)' }
+          ]
+        },
+        {
+          id: 'ASY-OSH-001', name: '외측 창짝 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-OSH', processName: '외측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 2, expanded: true,
+          children: [
+            { id: 'SH-FRM-OT', name: '외측 상변', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.0% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'GLS-OUT-P1', name: '외측 판유리 5mm 투명', type: 'part', level: 2, qty: '1 M2',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'M2' },
+            { id: 'GLS-SPC-01', name: '6mm 간봉', type: 'part', level: 2, qty: '1 SET' }
+          ]
+        },
+        {
+          id: 'ASY-ISH-001', name: '내측 창짝 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-ISH', processName: '내측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 3, expanded: false,
+          children: [
+            { id: 'SH-FRM-IN', name: '내측 상변', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA' },
+            { id: 'GLS-IN-P1', name: '내측 유리 5mm', type: 'part', level: 2, qty: '1 M2',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'M2' }
+          ]
+        },
+        {
+          id: 'ASY-HDW-001', name: '하드웨어 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-HDW', processName: '하드웨어조립', wcType: 'INTERNAL', workCenter: 'WC-HDW',
+          workCenterName: '하드웨어 작업장', supplier: null, order: 4, expanded: false,
+          children: [
+            { id: 'HDW-RLR-001', name: '호차', type: 'part', level: 2, qty: '4 EA' },
+            { id: 'HDW-CRS-001', name: '크리센트 세트', type: 'part', level: 2, qty: '1 SET' }
+          ]
+        },
+        {
+          id: 'ASY-SEL-001', name: '기밀자재 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SEL', processName: '기밀조립', wcType: 'INTERNAL', workCenter: 'WC-SEAL',
+          workCenterName: '기밀 작업장', supplier: null, order: 5, expanded: false, children: []
+        },
+        {
+          id: 'ASY-SCR-001', name: '방충망 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SCR', processName: '방충망조립', wcType: 'INTERNAL', workCenter: 'WC-SCR',
+          workCenterName: '방충망 작업장', supplier: null, order: 6, expanded: false, children: []
+        }
+      ]
+    }
+  },
+
+  'CFG-002': {
+    name: '2연창/직각/로이복층/AL/브라운',
+    status: 'RELEASED',
+    options: [
+      { icon: '&#9638;', label: '2연창', active: true },
+      { icon: '&#9698;', label: '직각절단', active: true },
+      { icon: '&#9672;', label: '로이복층', active: true },
+      { icon: '&#9644;', label: 'AL', active: false },
+      { icon: '&#9632;', label: '브라운', active: false },
+      { icon: '&#9883;', label: '윈드클로저', active: true }
+    ],
+    tree: {
+      id: 'PRD-SLD-DW', name: '미서기 이중창 1SET (2연창)', type: 'product', level: 0, qty: '1 SET', expanded: true,
+      children: [
+        {
+          id: 'ASY-FRM-001', name: '창틀 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-FRM', processName: '창틀조립', wcType: 'INTERNAL', workCenter: 'WC-FRAME',
+          workCenterName: '프레임 가공장', supplier: null, order: 1, expanded: true,
+          children: [
+            { id: 'FRM-TOP-001', name: '상틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'EA' },
+            { id: 'FRM-BOT-001', name: '하틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'EA' },
+            { id: 'FRM-LFT-001', name: '좌틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.5, theoreticalQty: 1, actualQty: 1.015, unit: 'EA' },
+            { id: 'CPL-HOR-001', name: '수평연결프레임', type: 'part', level: 2, qty: '1 EA',
+              rule: 'add', ruleName: 'RULE-MULTI-CONNECT',
+              ruleDesc: '2연창 이상 구성 시 수평연결프레임 자동 추가', ruleCondition: '연창수 >= 2' },
+            { id: 'HDW-CAP-001', name: '코너캡', type: 'part', level: 2, qty: '16 EA',
+              rule: 'add', ruleName: 'RULE-CAP-B90',
+              ruleDesc: '직각절단 시 코너캡 필수 투입 (4모서리 x 4개)', ruleCondition: '절단방식 = 직각(B90)' }
+          ]
+        },
+        {
+          id: 'ASY-OSH-001', name: '외측 창짝 조립체', type: 'assembly', level: 1, qty: '2 SET',
+          process: 'PRC-ASY-OSH', processName: '외측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 2, expanded: true,
+          children: [
+            { id: 'SH-FRM-OT', name: '외측 상변', type: 'part', level: 2, qty: '2 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.0, theoreticalQty: 2, actualQty: 2.02, unit: 'EA' },
+            { id: 'GLS-OUT-P1L', name: '외측 로이유리 5mm', type: 'part', level: 2, qty: '2 M2',
+              rule: 'replace', ruleName: 'RULE-GLASS-LOWE',
+              ruleDesc: '로이복층 옵션 선택 시 투명유리를 로이유리로 대체', ruleCondition: '유리옵션 = 로이복층',
+              ruleOriginal: 'GLS-OUT-P1 외측 투명유리 5mm',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 2.0, theoreticalQty: 2, actualQty: 2.04, unit: 'M2' },
+            { id: 'GLS-SPC-02', name: '12mm 간봉', type: 'part', level: 2, qty: '2 SET',
+              rule: 'replace', ruleName: 'RULE-SPACER-12',
+              ruleDesc: '로이복층 사양에 따라 6mm 간봉을 12mm 간봉으로 대체', ruleCondition: '유리옵션 = 로이복층',
+              ruleOriginal: 'GLS-SPC-01 6mm 간봉' }
+          ]
+        },
+        {
+          id: 'ASY-ISH-001', name: '내측 창짝 조립체', type: 'assembly', level: 1, qty: '2 SET',
+          process: 'PRC-ASY-ISH', processName: '내측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 3, expanded: false,
+          children: [
+            { id: 'SH-FRM-IN', name: '내측 상변', type: 'part', level: 2, qty: '2 EA',
+              process: 'PRC-CUT-B90', processName: '직각절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null, lossRate: 1.0, theoreticalQty: 2, actualQty: 2.02, unit: 'EA' },
+            { id: 'GLS-IN-P1', name: '내측 유리 5mm', type: 'part', level: 2, qty: '2 M2',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 1.5, theoreticalQty: 2, actualQty: 2.03, unit: 'M2' }
+          ]
+        },
+        {
+          id: 'ASY-HDW-001', name: '하드웨어 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-HDW', processName: '하드웨어조립', wcType: 'INTERNAL', workCenter: 'WC-HDW',
+          workCenterName: '하드웨어 작업장', supplier: null, order: 4, expanded: false,
+          children: [
+            { id: 'HDW-RLR-001', name: '호차', type: 'part', level: 2, qty: '8 EA' },
+            { id: 'HDW-CRS-001', name: '크리센트 세트', type: 'part', level: 2, qty: '2 SET' },
+            { id: 'HDW-WCL-001', name: '윈드클로저', type: 'part', level: 2, qty: '2 EA',
+              rule: 'add', ruleName: 'RULE-WINDCLOSER',
+              ruleDesc: '윈드클로저 부속 선택 시 자동 추가', ruleCondition: '부속선택 contains 윈드클로저' }
+          ]
+        },
+        {
+          id: 'ASY-SEL-001', name: '기밀자재 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SEL', processName: '기밀조립', wcType: 'INTERNAL', workCenter: 'WC-SEAL',
+          workCenterName: '기밀 작업장', supplier: null, order: 5, expanded: false, children: []
+        },
+        {
+          id: 'ASY-SCR-001', name: '방충망 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SCR', processName: '방충망조립', wcType: 'INTERNAL', workCenter: 'WC-SCR',
+          workCenterName: '방충망 작업장', supplier: null, order: 6, expanded: false, children: []
+        }
+      ]
+    }
+  },
+
+  'CFG-003': {
+    name: '3연창/사선/삼중유리/AL-TB/그레이',
+    status: 'DRAFT',
+    options: [
+      { icon: '&#9638;', label: '3연창', active: true },
+      { icon: '&#9698;', label: '사선절단', active: true },
+      { icon: '&#9672;', label: '삼중유리', active: true },
+      { icon: '&#9644;', label: 'AL+단열재', active: true },
+      { icon: '&#9632;', label: '그레이', active: false }
+    ],
+    tree: {
+      id: 'PRD-SLD-DW', name: '미서기 이중창 1SET (3연창)', type: 'product', level: 0, qty: '1 SET', expanded: true,
+      children: [
+        {
+          id: 'ASY-FRM-001', name: '창틀 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-FRM', processName: '창틀조립', wcType: 'INTERNAL', workCenter: 'WC-FRAME',
+          workCenterName: '프레임 가공장', supplier: null, order: 1, expanded: true,
+          children: [
+            { id: 'FRM-TOP-001', name: '상틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.5% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'FRM-BOT-001', name: '하틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.5% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'FRM-LFT-001', name: '좌틀 프로파일', type: 'part', level: 2, qty: '1 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 1, actualQty: 1.04, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.5% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'FRM-RGT-001', name: '우틀 프로파일 (1)', type: 'part', level: 2, qty: '1 EA',
+              rule: 'remove', ruleName: 'RULE-MULTI-REMOVE-RGT',
+              ruleDesc: '3연창 구성 시 우틀 프로파일 제거 (연결프레임으로 대체)', ruleCondition: '연창수 = 3' },
+            { id: 'FRM-RGT-001-2', name: '우틀 프로파일 (2)', type: 'part', level: 2, qty: '1 EA',
+              rule: 'remove', ruleName: 'RULE-MULTI-REMOVE-RGT',
+              ruleDesc: '3연창 구성 시 우틀 프로파일 제거 (연결프레임으로 대체)', ruleCondition: '연창수 = 3' },
+            { id: 'CPL-HOR-001', name: '수평연결프레임 (1)', type: 'part', level: 2, qty: '1 EA',
+              rule: 'add', ruleName: 'RULE-MULTI-CONNECT',
+              ruleDesc: '3연창 구성 시 수평연결프레임 2개 자동 추가', ruleCondition: '연창수 = 3' },
+            { id: 'CPL-HOR-002', name: '수평연결프레임 (2)', type: 'part', level: 2, qty: '1 EA',
+              rule: 'add', ruleName: 'RULE-MULTI-CONNECT',
+              ruleDesc: '3연창 구성 시 수평연결프레임 2개 자동 추가', ruleCondition: '연창수 = 3' },
+            { id: 'CPL-GSK-001', name: '연결부 가스켓 (1)', type: 'part', level: 2, qty: '1 EA',
+              rule: 'add', ruleName: 'RULE-MULTI-GASKET',
+              ruleDesc: '연결프레임 사용 시 연결부 가스켓 자동 추가', ruleCondition: '연창수 >= 2' },
+            { id: 'CPL-GSK-002', name: '연결부 가스켓 (2)', type: 'part', level: 2, qty: '1 EA',
+              rule: 'add', ruleName: 'RULE-MULTI-GASKET',
+              ruleDesc: '연결프레임 사용 시 연결부 가스켓 자동 추가', ruleCondition: '연창수 >= 2' },
+            { id: 'THB-001', name: '단열재 (Thermal Break)', type: 'part', level: 2, qty: '4 EA',
+              rule: 'add', ruleName: 'RULE-THERMAL-BREAK',
+              ruleDesc: 'AL-TB(알루미늄+단열재) 소재 선택 시 단열재 자동 추가', ruleCondition: '소재 = AL-TB' }
+          ]
+        },
+        {
+          id: 'ASY-OSH-001', name: '외측 창짝 조립체', type: 'assembly', level: 1, qty: '3 SET',
+          process: 'PRC-ASY-OSH', processName: '외측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 2, expanded: true,
+          children: [
+            { id: 'SH-FRM-OT', name: '외측 상변', type: 'part', level: 2, qty: '3 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 3, actualQty: 3.12, unit: 'EA',
+              rule: 'loss_change', ruleName: 'RULE-CUT-ANGLE-LOSS',
+              ruleDesc: '사선(45도) 절단 시 로스율 1.0% -> 4%로 변경', ruleCondition: '절단방식 = 사선(A45)' },
+            { id: 'GLS-OUT-TRP', name: '외측 삼중유리', type: 'part', level: 2, qty: '3 M2',
+              rule: 'replace', ruleName: 'RULE-GLASS-TRIPLE',
+              ruleDesc: '삼중유리 옵션 선택 시 투명유리를 삼중유리로 대체 (유리 3장 구성)',
+              ruleCondition: '유리옵션 = 삼중유리', ruleOriginal: 'GLS-OUT-P1 외측 판유리 5mm 투명',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 3.0, theoreticalQty: 3, actualQty: 3.09, unit: 'M2' },
+            { id: 'GLS-SPC-03', name: '간봉 2열 SET', type: 'part', level: 2, qty: '3 SET',
+              rule: 'replace', ruleName: 'RULE-SPACER-TRIPLE',
+              ruleDesc: '삼중유리 사양에 따라 간봉을 2열 SET으로 대체', ruleCondition: '유리옵션 = 삼중유리',
+              ruleOriginal: 'GLS-SPC-01 6mm 간봉' }
+          ]
+        },
+        {
+          id: 'ASY-ISH-001', name: '내측 창짝 조립체', type: 'assembly', level: 1, qty: '3 SET',
+          process: 'PRC-ASY-ISH', processName: '내측창짝조립', wcType: 'INTERNAL', workCenter: 'WC-SASH',
+          workCenterName: '창짝 작업장', supplier: null, order: 3, expanded: false,
+          children: [
+            { id: 'SH-FRM-IN', name: '내측 상변', type: 'part', level: 2, qty: '3 EA',
+              process: 'PRC-CUT-A45', processName: '사선절단', wcType: 'INTERNAL', workCenter: 'WC-CUT',
+              workCenterName: '절단 작업장', supplier: null,
+              lossRate: 4.0, theoreticalQty: 3, actualQty: 3.12, unit: 'EA' },
+            { id: 'GLS-IN-P1', name: '내측 유리 5mm', type: 'part', level: 2, qty: '3 M2',
+              process: 'PRC-CUT-GLS', processName: '유리절단', wcType: 'EXTERNAL', workCenter: 'EXT-GLS-01',
+              workCenterName: '유리절단 외주', supplier: '◇◇유리',
+              lossRate: 1.5, theoreticalQty: 3, actualQty: 3.045, unit: 'M2' }
+          ]
+        },
+        {
+          id: 'ASY-HDW-001', name: '하드웨어 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-HDW', processName: '하드웨어조립', wcType: 'INTERNAL', workCenter: 'WC-HDW',
+          workCenterName: '하드웨어 작업장', supplier: null, order: 4, expanded: false,
+          children: [
+            { id: 'HDW-RLR-001', name: '호차', type: 'part', level: 2, qty: '12 EA' },
+            { id: 'HDW-CRS-001', name: '크리센트 세트', type: 'part', level: 2, qty: '3 SET' }
+          ]
+        },
+        {
+          id: 'ASY-SEL-001', name: '기밀자재 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SEL', processName: '기밀조립', wcType: 'INTERNAL', workCenter: 'WC-SEAL',
+          workCenterName: '기밀 작업장', supplier: null, order: 5, expanded: false, children: []
+        },
+        {
+          id: 'ASY-SCR-001', name: '방충망 조립체', type: 'assembly', level: 1, qty: '1 SET',
+          process: 'PRC-ASY-SCR', processName: '방충망조립', wcType: 'INTERNAL', workCenter: 'WC-SCR',
+          workCenterName: '방충망 작업장', supplier: null, order: 6, expanded: false, children: []
+        }
+      ]
+    }
+  }
+};
+
+// Process flow definitions per config
+const processFlowSets = {
+  'BASE': {
+    'ASY-FRM-001': [
+      { code: 'PRC-CUT-B90', name: '직각절단', active: false },
+      { code: 'PRC-ASY-FRM', name: '창틀조립', active: true },
+      { code: 'PRC-QC-FRM', name: '검사', active: false }
+    ],
+    'ASY-OSH-001': [
+      { code: 'PRC-CUT-B90', name: '직각절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-OSH', name: '외측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-ISH-001': [
+      { code: 'PRC-CUT-B90', name: '직각절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-ISH', name: '내측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-HDW-001': [
+      { code: 'PRC-ASY-HDW', name: '하드웨어조립', active: true },
+      { code: 'PRC-QC-HDW', name: '검사', active: false }
+    ],
+    'ASY-SEL-001': [ { code: 'PRC-ASY-SEL', name: '기밀조립', active: true } ],
+    'ASY-SCR-001': [ { code: 'PRC-ASY-SCR', name: '방충망조립', active: true } ]
+  },
+  'CFG-001': {
+    'ASY-FRM-001': [
+      { code: 'PRC-CUT-A45', name: '사선절단', active: false },
+      { code: 'PRC-WLD-CNR', name: '코너용접', active: false },
+      { code: 'PRC-ASY-FRM', name: '창틀조립', active: true },
+      { code: 'PRC-QC-FRM', name: '검사', active: false }
+    ],
+    'ASY-OSH-001': [
+      { code: 'PRC-CUT-A45', name: '사선절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-OSH', name: '외측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-ISH-001': [
+      { code: 'PRC-CUT-A45', name: '사선절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-ISH', name: '내측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-HDW-001': [
+      { code: 'PRC-ASY-HDW', name: '하드웨어조립', active: true },
+      { code: 'PRC-QC-HDW', name: '검사', active: false }
+    ],
+    'ASY-SEL-001': [ { code: 'PRC-ASY-SEL', name: '기밀조립', active: true } ],
+    'ASY-SCR-001': [ { code: 'PRC-ASY-SCR', name: '방충망조립', active: true } ]
+  },
+  'CFG-002': {
+    'ASY-FRM-001': [
+      { code: 'PRC-CUT-B90', name: '직각절단', active: false },
+      { code: 'PRC-ASY-FRM', name: '창틀조립', active: true },
+      { code: 'PRC-QC-FRM', name: '검사', active: false }
+    ],
+    'ASY-OSH-001': [
+      { code: 'PRC-CUT-B90', name: '직각절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-OSH', name: '외측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-ISH-001': [
+      { code: 'PRC-CUT-B90', name: '직각절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-ISH', name: '내측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-HDW-001': [
+      { code: 'PRC-ASY-HDW', name: '하드웨어조립', active: true },
+      { code: 'PRC-QC-HDW', name: '검사', active: false }
+    ],
+    'ASY-SEL-001': [ { code: 'PRC-ASY-SEL', name: '기밀조립', active: true } ],
+    'ASY-SCR-001': [ { code: 'PRC-ASY-SCR', name: '방충망조립', active: true } ]
+  },
+  'CFG-003': {
+    'ASY-FRM-001': [
+      { code: 'PRC-CUT-A45', name: '사선절단', active: false },
+      { code: 'PRC-ASY-FRM', name: '창틀조립', active: true },
+      { code: 'PRC-QC-FRM', name: '검사', active: false }
+    ],
+    'ASY-OSH-001': [
+      { code: 'PRC-CUT-A45', name: '사선절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-OSH', name: '외측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-ISH-001': [
+      { code: 'PRC-CUT-A45', name: '사선절단', active: false },
+      { code: 'PRC-CUT-GLS', name: '유리절단', active: false },
+      { code: 'PRC-ASY-ISH', name: '내측창짝조립', active: true },
+      { code: 'PRC-QC-SH', name: '검사', active: false }
+    ],
+    'ASY-HDW-001': [
+      { code: 'PRC-ASY-HDW', name: '하드웨어조립', active: true },
+      { code: 'PRC-QC-HDW', name: '검사', active: false }
+    ],
+    'ASY-SEL-001': [ { code: 'PRC-ASY-SEL', name: '기밀조립', active: true } ],
+    'ASY-SCR-001': [ { code: 'PRC-ASY-SCR', name: '방충망조립', active: true } ]
+  }
+};
+
+// ===== STATE =====
+let currentOptionConfigKey = 'CFG-002';
+let selectedNode = null;
+
+function getCurrentOptionConfig() {
+  return bomDataSets[currentOptionConfigKey];
+}
+
+function getCurrentTree() {
+  return getCurrentOptionConfig().tree;
+}
+
+function getCurrentProcessFlows() {
+  return processFlowSets[currentOptionConfigKey] || {};
+}
+
+// ===== 옵션구성 SWITCH =====
+function switchOptionConfig(optionConfigKey) {
+  currentOptionConfigKey = optionConfigKey;
+  selectedNode = null;
+
+  // Update config status badge
+  const config = getCurrentOptionConfig();
+  const statusBadge = document.getElementById('configStatusBadge');
+  statusBadge.textContent = config.status === 'BASE' ? 'BASE' : config.status;
+  statusBadge.className = 'config-status ' + config.status.toLowerCase();
+
+  // Update option chips
+  renderOptionChips();
+
+  // Update config code label
+  document.getElementById('configCodeLabel').textContent = optionConfigKey;
+
+  // Update status bar
+  document.getElementById('statusConfig').textContent = '옵션구성 코드: ' + optionConfigKey;
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  if (config.status === 'DRAFT') {
+    statusDot.className = 'status-dot orange';
+    statusText.textContent = 'DRAFT 모드';
+  } else if (config.status === 'BASE') {
+    statusDot.className = 'status-dot blue';
+    statusText.textContent = '기본 공정구성 보기';
+  } else {
+    statusDot.className = 'status-dot green';
+    statusText.textContent = '편집 모드';
+  }
+
+  // Render tree
+  renderTree();
+
+  // Reset detail panel
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-empty">
+      <div class="icon">&#128065;</div>
+      <div>좌측 트리에서 부품을 선택하면<br>제조 상세 정보가 표시됩니다.</div>
+    </div>
+  `;
+
+  // Update tree count
+  updateTreeCount();
+}
+
+function renderOptionChips() {
+  const config = getCurrentOptionConfig();
+  const container = document.getElementById('optionChips');
+
+  if (config.status === 'BASE') {
+    container.innerHTML = '<span class="chip base-chip">기본 공정구성 — 옵션 미적용</span>';
+    return;
+  }
+
+  container.innerHTML = config.options.map(opt =>
+    `<span class="chip${opt.active ? ' active' : ''}"><span class="chip-icon">${opt.icon}</span> ${opt.label}</span>`
+  ).join('');
+
+  if (config.status === 'DRAFT') {
+    container.innerHTML += ' <span class="config-status draft" style="margin-left:8px;">DRAFT</span>';
+  }
+}
+
+function updateTreeCount() {
+  const tree = getCurrentTree();
+  let assemblies = 0, parts = 0;
+  function count(node) {
+    if (node.children) {
+      node.children.forEach(c => {
+        if (c.type === 'assembly') assemblies++;
+        if (c.type === 'part') parts++;
+        count(c);
+      });
+    }
+  }
+  count(tree);
+  document.getElementById('treeCount').textContent = assemblies + '개 조립체 / ' + parts + '개 부품';
+}
+
+// ===== RENDER TREE =====
+function renderTree() {
+  const container = document.getElementById('treeContainer');
+  container.innerHTML = '';
+  container.appendChild(renderNode(getCurrentTree(), 0));
+}
+
+function renderNode(node, depth) {
+  const el = document.createElement('div');
+  el.className = 'tree-node';
+
+  const hasChildren = node.children && node.children.length > 0;
+  const row = document.createElement('div');
+  row.className = 'tree-row';
+  if (node.rule === 'add') row.classList.add('rule-add');
+  if (node.rule === 'replace') row.classList.add('rule-replace');
+  if (node.rule === 'remove') row.classList.add('rule-remove');
+  if (node.rule === 'loss_change') row.classList.add('rule-loss-change');
+  row.style.paddingLeft = (12 + depth * 20) + 'px';
+  row.dataset.id = node.id;
+
+  // Toggle
+  const toggle = document.createElement('span');
+  toggle.className = 'tree-toggle' + (hasChildren ? (node.expanded ? ' expanded' : '') : ' hidden');
+  toggle.innerHTML = '&#9654;';
+  if (hasChildren) {
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      node.expanded = !node.expanded;
+      renderTree();
+      selectNodeById(selectedNode ? selectedNode.id : null);
+    });
+  }
+  row.appendChild(toggle);
+
+  // Icon
+  const icon = document.createElement('span');
+  icon.className = 'node-icon ' + node.type;
+  icon.textContent = node.type === 'product' ? 'P' : node.type === 'assembly' ? 'A' : 'C';
+  row.appendChild(icon);
+
+  // Name
+  const name = document.createElement('span');
+  name.className = 'node-name';
+  name.textContent = node.name;
+  row.appendChild(name);
+
+  // Code
+  const code = document.createElement('span');
+  code.className = 'node-code';
+  code.textContent = node.id;
+  row.appendChild(code);
+
+  // Badge
+  if (node.rule === 'add') {
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-add';
+    badge.textContent = '추가';
+    row.appendChild(badge);
+  }
+  if (node.rule === 'replace') {
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-replace';
+    badge.textContent = '대체';
+    row.appendChild(badge);
+  }
+  if (node.rule === 'remove') {
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-remove';
+    badge.textContent = '제거';
+    row.appendChild(badge);
+  }
+  if (node.rule === 'loss_change') {
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-loss';
+    badge.textContent = '로스 ' + node.lossRate + '%';
+    row.appendChild(badge);
+  }
+
+  // Work Center Type Badge
+  if (node.wcType) {
+    const wcBadge = document.createElement('span');
+    if (node.wcType === 'INTERNAL') {
+      wcBadge.className = 'wc-badge-internal';
+      wcBadge.textContent = '내부';
+    } else {
+      wcBadge.className = 'wc-badge-external';
+      wcBadge.textContent = '외주';
+    }
+    row.appendChild(wcBadge);
+    if (node.wcType === 'EXTERNAL' && node.supplier) {
+      const supplierSpan = document.createElement('span');
+      supplierSpan.className = 'wc-supplier';
+      supplierSpan.textContent = node.supplier;
+      row.appendChild(supplierSpan);
+    }
+  }
+
+  // Process
+  if (node.process && node.type === 'assembly') {
+    const proc = document.createElement('span');
+    proc.className = 'node-process';
+    proc.textContent = node.processName;
+    row.appendChild(proc);
+  }
+
+  // Order
+  if (node.order) {
+    const ord = document.createElement('span');
+    ord.className = 'node-order';
+    ord.textContent = '#' + node.order;
+    row.appendChild(ord);
+  }
+
+  // Qty
+  const qty = document.createElement('span');
+  qty.className = 'node-qty';
+  qty.textContent = node.qty;
+  row.appendChild(qty);
+
+  // Click handler
+  row.addEventListener('click', () => {
+    document.querySelectorAll('.tree-row.selected').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    selectedNode = node;
+    renderDetail(node);
+  });
+
+  el.appendChild(row);
+
+  // Children
+  if (hasChildren) {
+    const childContainer = document.createElement('div');
+    childContainer.className = 'tree-children' + (node.expanded ? '' : ' collapsed');
+    node.children.forEach(child => {
+      childContainer.appendChild(renderNode(child, depth + 1));
+    });
+    el.appendChild(childContainer);
+  }
+
+  return el;
+}
+
+function selectNodeById(id) {
+  if (!id) return;
+  const row = document.querySelector(`.tree-row[data-id="${id}"]`);
+  if (row) {
+    row.classList.add('selected');
+  }
+}
+
+// ===== RENDER DETAIL =====
+function renderDetail(node) {
+  const container = document.getElementById('detailContent');
+
+  if (node.type === 'product') {
+    container.innerHTML = renderProductDetail(node);
+  } else if (node.type === 'assembly') {
+    container.innerHTML = renderAssemblyDetail(node);
+  } else {
+    container.innerHTML = renderPartDetail(node);
+  }
+}
+
+function renderProductDetail(node) {
+  return `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128230;</span> 완제품 정보</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">품목코드</div>
+            <div class="info-value code">${node.id}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">품목명</div>
+            <div class="info-value">${node.name}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">수량</div>
+            <div class="info-value">${node.qty}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">구성코드</div>
+            <div class="info-value code">${currentOptionConfigKey}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">조립체 수</div>
+            <div class="info-value">${node.children.length}개</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">총 부품 수</div>
+            <div class="info-value">${countParts(node)}개</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#9881;</span> 조립 공정 흐름</div>
+      <div class="card-body">
+        <div class="process-flow">
+          ${node.children.filter(c => c.order).sort((a,b) => a.order - b.order).map((c, i, arr) => `
+            <div class="process-step">
+              <div class="step-box active">
+                ${c.processName}
+                <span class="step-code">${c.process}</span>
+              </div>
+              <div class="step-label">#${c.order} ${c.name}</div>
+            </div>
+            ${i < arr.length - 1 ? '<div class="process-arrow">&#10140;</div>' : ''}
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128203;</span> 하위 조립체 목록</div>
+      <div class="card-body">
+        <table class="children-table">
+          <thead>
+            <tr>
+              <th>순서</th>
+              <th>품목코드</th>
+              <th>품목명</th>
+              <th>수량</th>
+              <th>공정</th>
+              <th>작업장</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${node.children.map(c => `
+              <tr>
+                <td>${c.order || '-'}</td>
+                <td style="font-family:monospace;color:var(--accent)">${c.id}</td>
+                <td>${c.name}</td>
+                <td>${c.qty}</td>
+                <td>${c.processName || '-'}</td>
+                <td>${c.workCenter ? c.workCenter + ' ' + (c.wcType === 'INTERNAL' ? '<span class="wc-badge-internal">내부</span>' : '<span class="wc-badge-external">외주</span>' + (c.supplier ? ' ' + c.supplier : '')) : '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderAssemblyDetail(node) {
+  const processFlows = getCurrentProcessFlows();
+  const flow = processFlows[node.id] || [];
+  const ruleChildren = (node.children || []).filter(c => c.rule);
+  const hasLossChildren = (node.children || []).filter(c => c.lossRate);
+
+  return `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128295;</span> 조립체 정보</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">품목코드</div>
+            <div class="info-value code">${node.id}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">품목명</div>
+            <div class="info-value">${node.name}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">수량</div>
+            <div class="info-value">${node.qty}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">작업순서</div>
+            <div class="info-value">#${node.order}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">공정코드</div>
+            <div class="info-value code">${node.process}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">공정명</div>
+            <div class="info-value">${node.processName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">작업장</div>
+            <div class="info-value code">${node.workCenter}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">작업장명</div>
+            <div class="info-value">${node.wcType === 'EXTERNAL' ? '<span class="wc-external-highlight">' + node.supplier + ' / ' + node.workCenterName + '</span>' : node.workCenterName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">작업장 유형</div>
+            <div class="info-value">${node.wcType === 'INTERNAL' ? '<span class="wc-badge-internal">내부</span>' : '<span class="wc-badge-external">외주</span>'}</div>
+          </div>
+          ${node.wcType === 'EXTERNAL' && node.supplier ? `
+          <div class="info-item">
+            <div class="info-label">외주 업체</div>
+            <div class="info-value" style="color:#E65100;font-weight:600">${node.supplier}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+
+    ${flow.length > 0 ? `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#9881;</span> 공정 흐름도</div>
+      <div class="card-body">
+        <div class="process-flow">
+          ${flow.map((s, i) => `
+            <div class="process-step">
+              <div class="step-box${s.active ? ' active' : ''}">
+                ${s.name}
+                <span class="step-code">${s.code}</span>
+              </div>
+              <div class="step-label">${s.active ? '현재 공정' : ''}</div>
+            </div>
+            ${i < flow.length - 1 ? '<div class="process-arrow">&#10140;</div>' : ''}
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    ${hasLossChildren.length > 0 ? `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128200;</span> 로스율 현황</div>
+      <div class="card-body">
+        <div class="loss-section">
+          ${hasLossChildren.map(c => `
+            <div class="loss-row">
+              <div class="loss-label">${c.name}</div>
+              <div class="loss-bar-container">
+                <div class="loss-bar ${c.lossRate <= 1.0 ? 'low' : c.lossRate <= 1.5 ? 'medium' : 'high'}" style="width: ${Math.max(c.lossRate * 10, 8)}%">
+                  <span class="loss-bar-text">${c.lossRate}%</span>
+                </div>
+              </div>
+              <div class="loss-value">${c.lossRate}%</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128203;</span> 하위 부품 목록</div>
+      <div class="card-body">
+        <table class="children-table">
+          <thead>
+            <tr>
+              <th>품목코드</th>
+              <th>품목명</th>
+              <th>수량</th>
+              <th>공정</th>
+              <th>로스율</th>
+              <th>실소요량</th>
+              <th>옵션별규칙</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(node.children || []).map(c => `
+              <tr class="${c.rule === 'add' ? 'row-add' : c.rule === 'replace' ? 'row-replace' : c.rule === 'remove' ? 'row-remove' : ''}">
+                <td style="font-family:monospace;color:var(--accent)">${c.id}</td>
+                <td>${c.name}</td>
+                <td>${c.qty}</td>
+                <td>${c.processName || '-'}</td>
+                <td>${c.lossRate ? '<span style="color:var(--loss-red);font-weight:600">' + c.lossRate + '%</span>' : '-'}</td>
+                <td>${c.actualQty || '-'}</td>
+                <td>${c.rule === 'add' ? '<span class="badge badge-add">추가</span>' : c.rule === 'replace' ? '<span class="badge badge-replace">대체</span>' : c.rule === 'remove' ? '<span class="badge badge-remove">제거</span>' : c.rule === 'loss_change' ? '<span class="badge badge-loss">로스변경</span>' : '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    ${ruleChildren.length > 0 ? `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128268;</span> 적용된 옵션별규칙</div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+        ${ruleChildren.map(c => `
+          <div class="rule-info ${c.rule === 'loss_change' ? 'replace' : c.rule}">
+            <div class="rule-icon">${c.rule === 'add' ? '&#10010;' : c.rule === 'remove' ? '&#10006;' : '&#8644;'}</div>
+            <div class="rule-detail">
+              <div class="rule-name">${c.ruleName}</div>
+              <div class="rule-desc">
+                ${c.ruleDesc}<br>
+                <strong>조건:</strong> ${c.ruleCondition}
+                ${c.ruleOriginal ? '<br><strong>원래 부품:</strong> ' + c.ruleOriginal : ''}
+                <br><strong>결과:</strong> ${c.id} ${c.name} ${c.rule === 'add' ? '추가' : c.rule === 'remove' ? '제거' : c.rule === 'loss_change' ? '로스율 변경' : '대체 투입'}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
+
+function renderPartDetail(node) {
+  return `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128296;</span> 부품 정보</div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">품목코드</div>
+            <div class="info-value code">${node.id}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">품목명</div>
+            <div class="info-value">${node.name}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">수량</div>
+            <div class="info-value">${node.qty}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">레벨</div>
+            <div class="info-value">Level ${node.level}</div>
+          </div>
+          ${node.process ? `
+          <div class="info-item">
+            <div class="info-label">공정코드</div>
+            <div class="info-value code">${node.process}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">공정명</div>
+            <div class="info-value">${node.processName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">작업장</div>
+            <div class="info-value code">${node.workCenter}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">작업장명</div>
+            <div class="info-value">${node.wcType === 'EXTERNAL' ? '<span class="wc-external-highlight">' + node.supplier + ' / ' + node.workCenterName + '</span>' : node.workCenterName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">작업장 유형</div>
+            <div class="info-value">${node.wcType === 'INTERNAL' ? '<span class="wc-badge-internal">내부</span>' : '<span class="wc-badge-external">외주</span>'}</div>
+          </div>
+          ${node.wcType === 'EXTERNAL' && node.supplier ? `
+          <div class="info-item">
+            <div class="info-label">외주 업체</div>
+            <div class="info-value" style="color:#E65100;font-weight:600">${node.supplier}</div>
+          </div>
+          ` : ''}
+          ` : ''}
+        </div>
+      </div>
+    </div>
+
+    ${node.lossRate ? `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128200;</span> 로스율 게이지</div>
+      <div class="card-body">
+        <div class="loss-section">
+          <div class="loss-row">
+            <div class="loss-label">로스율</div>
+            <div class="loss-bar-container">
+              <div class="loss-bar ${node.lossRate <= 1.0 ? 'low' : node.lossRate <= 1.5 ? 'medium' : 'high'}" style="width: ${Math.max(node.lossRate * 10, 8)}%">
+                <span class="loss-bar-text">${node.lossRate}%</span>
+              </div>
+            </div>
+            <div class="loss-value">${node.lossRate}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128202;</span> 소요량 비교</div>
+      <div class="card-body">
+        <table class="qty-table">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>수량</th>
+              <th>단위</th>
+              <th>비고</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>이론 소요량</td>
+              <td>${node.theoreticalQty}</td>
+              <td>${node.unit}</td>
+              <td class="qty-same">BOM 기준</td>
+            </tr>
+            <tr>
+              <td><strong>실 소요량</strong></td>
+              <td class="qty-diff"><strong>${node.actualQty}</strong></td>
+              <td>${node.unit}</td>
+              <td class="qty-diff">로스 ${node.lossRate}% 반영</td>
+            </tr>
+            <tr>
+              <td>차이</td>
+              <td class="qty-diff">+${(node.actualQty - node.theoreticalQty).toFixed(3)}</td>
+              <td>${node.unit}</td>
+              <td style="color:var(--text-secondary)">이론 x (1 + ${node.lossRate}%)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    ` : ''}
+
+    ${node.rule ? `
+    <div class="detail-card">
+      <div class="card-header"><span class="card-icon">&#128268;</span> 적용된 옵션별규칙</div>
+      <div class="card-body">
+        <div class="rule-info ${node.rule === 'loss_change' ? 'replace' : node.rule}">
+          <div class="rule-icon">${node.rule === 'add' ? '&#10010;' : node.rule === 'remove' ? '&#10006;' : '&#8644;'}</div>
+          <div class="rule-detail">
+            <div class="rule-name">${node.ruleName}</div>
+            <div class="rule-desc">
+              ${node.ruleDesc}<br>
+              <strong>조건:</strong> ${node.ruleCondition}
+              ${node.ruleOriginal ? '<br><strong>원래 부품:</strong> ' + node.ruleOriginal : ''}
+              <br><strong>결과:</strong> ${node.id} ${node.name} ${node.rule === 'add' ? '추가' : node.rule === 'remove' ? '제거' : node.rule === 'loss_change' ? '로스율 변경' : '대체 투입'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
+
+function countParts(node) {
+  let count = 0;
+  if (node.children) {
+    node.children.forEach(c => {
+      if (c.type === 'part') count++;
+      count += countParts(c);
+    });
+  }
+  return count;
+}
+
+// ===== 옵션구성 SELECT EVENT =====
+document.getElementById('configSelect').addEventListener('change', function(e) {
+  switchOptionConfig(e.target.value);
+});
+
+// ===== SEARCH =====
+document.getElementById('treeSearch').addEventListener('input', function(e) {
+  const query = e.target.value.toLowerCase().trim();
+  const rows = document.querySelectorAll('.tree-row');
+  if (!query) {
+    rows.forEach(r => r.style.display = '');
+    return;
+  }
+  rows.forEach(r => {
+    const text = r.textContent.toLowerCase();
+    r.style.display = text.includes(query) ? '' : 'none';
+  });
+  // Expand all when searching
+  document.querySelectorAll('.tree-children').forEach(c => c.classList.remove('collapsed'));
+});
+
+// ===== RESIZER =====
+(function() {
+  const resizer = document.getElementById('resizer');
+  const left = document.getElementById('leftPanel');
+  let startX, startWidth;
+
+  resizer.addEventListener('mousedown', function(e) {
+    startX = e.clientX;
+    startWidth = left.offsetWidth;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  function onMouseMove(e) {
+    const dx = e.clientX - startX;
+    const newWidth = Math.max(300, Math.min(startWidth + dx, window.innerWidth - 400));
+    left.style.width = newWidth + 'px';
+  }
+
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+})();
+
+// ===== INIT =====
+renderOptionChips();
+renderTree();
+updateTreeCount();
+
+// Auto-select first assembly
+setTimeout(() => {
+  const firstAssembly = document.querySelector('.tree-row[data-id="ASY-FRM-001"]');
+  if (firstAssembly) firstAssembly.click();
+}, 100);
+</script>
+</body>
+</html>

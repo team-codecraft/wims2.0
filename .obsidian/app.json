@@ -1,0 +1,8 @@
+{
+  "userIgnoreFilters": [
+    "node_modules",
+    "yarn.lock",
+    "package.json",
+    "node_modules/"
+  ]
+}

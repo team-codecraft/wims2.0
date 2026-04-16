@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 2.0 - 옵션/옵션별규칙 신규 등록</title>
+<style>
+  :root {
+    --primary: #1F4E79;
+    --accent: #2E75B6;
+    --header-bg: #D6E4F0;
+    --light-bg: #F2F7FB;
+    --success: #2E7D32;
+    --success-bg: #E8F5E9;
+    --replace: #1565C0;
+    --replace-bg: #E3F2FD;
+    --danger: #C62828;
+    --danger-bg: #FFEBEE;
+    --warning: #E65100;
+    --warning-bg: #FFF3E0;
+    --option: #7B1FA2;
+    --option-bg: #F3E5F5;
+    --border: #E0E0E0;
+    --font-family: '맑은 고딕', 'Malgun Gothic', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-family); background: #f0f2f5; color: #333; font-size: 13px; }
+
+  /* ===== Top Header ===== */
+  .top-header {
+    height: 50px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .nav-item {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .nav-item.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-weight: 600;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+  }
+  .breadcrumb {
+    color: rgba(255,255,255,0.8);
+  }
+  .breadcrumb strong {
+    color: #fff;
+  }
+  .user-info {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Tab Navigation */
+  .tab-nav { display: flex; background: #fff; border-bottom: 2px solid var(--border); padding: 0 24px; }
+  .tab-btn { padding: 12px 24px; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border: none; background: none; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .tab-btn:hover { color: var(--accent); }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* Layout */
+  .tab-content { display: none; height: calc(100vh - 50px - 46px); }
+  .tab-content.active { display: flex; }
+  .layout { display: flex; height: 100%; gap: 1px; background: #ddd; width: 100%; }
+
+  /* Panels */
+  .panel-left { width: 30%; min-width: 260px; background: #fff; display: flex; flex-direction: column; }
+  .panel-right { width: 70%; background: #fff; display: flex; flex-direction: column; overflow-y: auto; }
+  .panel-title { background: var(--header-bg); color: var(--primary); padding: 8px 12px; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+
+  /* Group List */
+  .group-list { flex: 1; overflow-y: auto; }
+  .group-item { padding: 12px 16px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; gap: 4px; }
+  .group-item:hover { background: #F5F5F5; }
+  .group-item.active { background: #E3F2FD; border-left: 3px solid var(--accent); }
+  .group-item .group-code { font-size: 11px; color: #888; font-family: 'Consolas', monospace; }
+  .group-item .group-name { font-size: 13px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; }
+  .group-item .group-name .required { color: #e74c3c; font-size: 12px; }
+  .group-item .group-meta { display: flex; gap: 6px; margin-top: 2px; }
+
+  /* Tags */
+  .tag { font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  .tag-both { background: var(--success-bg); color: var(--success); }
+  .tag-mbom { background: #fff3e0; color: #e65100; }
+  .tag-ebom { background: var(--replace-bg); color: var(--replace); }
+  .tag-required { background: var(--danger-bg); color: var(--danger); }
+  .tag-optional { background: #f5f5f5; color: #888; }
+  .tag-active { background: var(--success-bg); color: var(--success); }
+  .tag-inactive { background: #f5f5f5; color: #999; }
+
+  /* Add Button */
+  .add-btn-wrap { padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .btn-add-group { width: 100%; padding: 10px; border: 2px dashed var(--accent); background: var(--light-bg); color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+  .btn-add-group:hover { background: var(--replace-bg); }
+
+  /* Form Section */
+  .form-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+  .form-section h3 { font-size: 14px; color: var(--primary); font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .form-section h3 .section-icon { font-size: 16px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; color: #666; font-weight: 600; }
+  .form-group label .req { color: var(--danger); margin-left: 2px; }
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group select,
+  .form-group textarea {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px;
+    font-family: var(--font-family); transition: border-color 0.2s; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 2px rgba(46,117,182,0.1);
+  }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+  .form-group .input-prefix { display: flex; align-items: center; gap: 0; }
+  .form-group .input-prefix .prefix { background: var(--header-bg); color: var(--primary); padding: 8px 10px; border: 1px solid var(--border); border-right: none; border-radius: 4px 0 0 4px; font-size: 13px; font-weight: 600; font-family: 'Consolas', monospace; white-space: nowrap; }
+  .form-group .input-prefix input { border-radius: 0 4px 4px 0; flex: 1; }
+
+  /* Radio Group */
+  .radio-group { display: flex; gap: 16px; padding: 6px 0; }
+  .radio-group label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+  .radio-group input[type="radio"] { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  /* Checkbox */
+  .checkbox-group { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+  .checkbox-group input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+  .checkbox-group label { font-size: 13px; cursor: pointer; }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table thead th { background: var(--header-bg); color: var(--primary); padding: 8px 12px; text-align: left; font-size: 12px; font-weight: 700; border-bottom: 2px solid var(--accent); }
+  .data-table tbody td { padding: 8px 12px; border-bottom: 1px solid #E8E8E8; font-size: 12px; }
+  .data-table tbody tr:nth-child(even) { background: #F8FAFC; }
+  .data-table tbody tr:hover { background: #F5F5F5; }
+
+  /* Inline Form */
+  .inline-form { display: flex; align-items: center; gap: 8px; padding: 12px 0; border-top: 1px solid var(--border); margin-top: 8px; }
+  .inline-form input, .inline-form select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+  .inline-form input:focus, .inline-form select:focus { border-color: var(--accent); outline: none; }
+
+  /* Buttons */
+  .btn { padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: #163B5E; }
+  .btn-secondary { background: var(--accent); color: #fff; }
+  .btn-secondary:hover { background: #245f96; }
+  .btn-outline { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-outline:hover { background: var(--light-bg); }
+  .btn-ghost { background: transparent; color: #888; border: 1px solid var(--border); }
+  .btn-ghost:hover { background: #f5f5f5; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #a11f1f; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-xs { padding: 3px 8px; font-size: 11px; }
+
+  /* Constraint Row */
+  .constraint-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 6px; background: #fff; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+  .constraint-row .cr-type { font-weight: 600; color: var(--primary); min-width: 70px; }
+  .constraint-row .cr-condition { flex: 1; font-family: 'Consolas', monospace; color: #555; font-size: 11px; }
+
+  /* Condition Builder */
+  .condition-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; flex-wrap: wrap; }
+  .condition-row select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; min-width: 120px; }
+  .condition-row select:focus { border-color: var(--accent); outline: none; }
+  .condition-logic { display: flex; gap: 4px; }
+  .condition-logic .btn { padding: 4px 10px; font-size: 11px; }
+  .condition-logic .btn.selected { background: var(--accent); color: #fff; }
+  .btn-remove-row { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--danger); color: var(--danger); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; line-height: 1; flex-shrink: 0; }
+  .btn-remove-row:hover { background: var(--danger-bg); }
+
+  /* Condition Preview */
+  .condition-preview { background: #2d2d2d; color: #e8e8e8; padding: 12px 16px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 13px; margin-top: 8px; }
+  .condition-preview .kw { color: #569CD6; }
+  .condition-preview .val { color: #CE9178; }
+  .condition-preview .op { color: #D4D4D4; }
+
+  /* Action Row */
+  .action-row { display: flex; align-items: flex-start; gap: 8px; padding: 12px; margin-bottom: 8px; background: #fff; border: 1px solid var(--border); border-radius: 6px; flex-wrap: wrap; }
+  .action-row .action-fields { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+  .action-row select, .action-row input { padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+  .action-row select:focus, .action-row input:focus { border-color: var(--accent); outline: none; }
+  .action-type-badge { padding: 3px 8px; border-radius: 3px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .atb-add { background: var(--success-bg); color: var(--success); }
+  .atb-remove { background: var(--danger-bg); color: var(--danger); }
+  .atb-replace { background: var(--replace-bg); color: var(--replace); }
+  .atb-qty { background: var(--warning-bg); color: var(--warning); }
+  .atb-loss { background: var(--option-bg); color: var(--option); }
+
+  /* Simulation Preview */
+  .sim-section { background: var(--light-bg); border-top: 2px solid var(--primary); padding: 16px 24px; flex-shrink: 0; }
+  .sim-title { font-size: 13px; color: var(--primary); font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .sim-item { padding: 6px 12px; margin-bottom: 4px; border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .sim-item.add { background: var(--success-bg); color: var(--success); border-left: 3px solid var(--success); }
+  .sim-item.remove { background: var(--danger-bg); color: var(--danger); border-left: 3px solid var(--danger); text-decoration: line-through; }
+  .sim-item.replace { background: var(--replace-bg); color: var(--replace); border-left: 3px solid var(--replace); }
+  .sim-item.loss { background: var(--warning-bg); color: var(--warning); border-left: 3px solid var(--warning); }
+  .sim-item .si-icon { font-size: 14px; flex-shrink: 0; }
+  .sim-empty { text-align: center; color: #aaa; padding: 20px; font-size: 12px; }
+
+  /* Action Bar */
+  .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 24px; border-top: 1px solid var(--border); background: #fff; flex-shrink: 0; }
+
+  /* Rule Card in list */
+  .rule-card { padding: 12px 16px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.15s; }
+  .rule-card:hover { background: #F5F5F5; }
+  .rule-card.active { background: #E3F2FD; border-left: 3px solid var(--accent); }
+  .rule-card .rc-name { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
+  .rule-card .rc-priority { font-size: 11px; color: #888; }
+  .rule-card .rc-condition { font-size: 11px; font-family: 'Consolas', monospace; color: #777; margin-top: 4px; background: #f8f8f8; padding: 4px 8px; border-radius: 3px; }
+  .rule-card .rc-actions-count { font-size: 11px; color: var(--accent); margin-top: 4px; }
+
+  /* Misc */
+  .default-badge { font-size: 11px; background: var(--primary); color: #fff; padding: 2px 6px; border-radius: 3px; }
+  .status-active { color: var(--success); font-weight: 600; }
+  .status-inactive { color: #999; }
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  .empty-state { text-align: center; padding: 40px; color: #aaa; }
+  .empty-state .es-icon { font-size: 40px; margin-bottom: 8px; display: block; }
+  .arrow { margin: 0 4px; }
+  .alert-box { padding: 10px 14px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .alert-info { background: var(--replace-bg); color: var(--replace); border: 1px solid #90CAF9; }
+  .alert-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid #FFCC80; }
+</style>
+</head>
+<body>
+
+<header class="top-header">
+  <div class="header-left">
+    <span class="logo">WIMS 2.0</span>
+    <nav class="header-nav">
+      <a href="#" class="nav-item active">제품관리</a>
+      <a href="#" class="nav-item">견적설계</a>
+      <a href="#" class="nav-item">발주관리</a>
+      <a href="#" class="nav-item">제조관리</a>
+      <a href="#" class="nav-item">시스템</a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <span class="breadcrumb">제품관리 &gt; 옵션/옵션별규칙 관리 &gt; <strong>신규 등록</strong></span>
+    <span class="user-info">김지광</span>
+  </div>
+</header>
+
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="tab-option" onclick="switchTab('tab-option')">옵션 그룹/값 추가</button>
+  <button class="tab-btn" data-tab="tab-rule" onclick="switchTab('tab-rule')">옵션별규칙 추가</button>
+</div>
+
+<!-- ========== TAB 1: 옵션 그룹/값 추가 ========== -->
+<div class="tab-content active" id="tab-option">
+  <div class="layout">
+    <!-- Left: 기존 옵션 그룹 목록 -->
+    <div class="panel-left">
+      <div class="panel-title">기존 옵션 그룹 목록</div>
+      <div class="group-list" id="optGroupList"></div>
+      <div class="add-btn-wrap">
+        <button class="btn-add-group" onclick="showNewGroupForm()">+ 새 그룹 추가</button>
+      </div>
+    </div>
+    <!-- Right: 옵션 등록 폼 -->
+    <div class="panel-right" id="optFormArea">
+      <!-- 초기: 안내 -->
+      <div class="empty-state" id="optEmptyState">
+        <span class="es-icon">&#128221;</span>
+        좌측에서 기존 그룹을 선택하거나,<br>"새 그룹 추가" 버튼을 클릭하세요.
+      </div>
+      <!-- (A) 새 옵션 그룹 추가 폼 -->
+      <div id="newGroupForm" style="display:none;">
+        <div class="form-section">
+          <h3><span class="section-icon">&#128194;</span> 새 옵션 그룹 추가</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>그룹 코드 <span class="req">*</span></label>
+              <div class="input-prefix">
+                <span class="prefix">OPT-</span>
+                <input type="text" placeholder="영문 대문자 코드 (예: HW)" style="text-transform:uppercase">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>그룹명 <span class="req">*</span></label>
+              <input type="text" placeholder="한글 그룹명 (예: 하드웨어 유형)">
+            </div>
+            <div class="form-group">
+              <label>필수 여부</label>
+              <div class="checkbox-group">
+                <input type="checkbox" id="chkRequired">
+                <label for="chkRequired">필수 옵션 그룹</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>적용 범위 <span class="req">*</span></label>
+              <div class="radio-group">
+                <label><input type="radio" name="scope" value="EBOM"> EBOM</label>
+                <label><input type="radio" name="scope" value="MBOM"> MBOM</label>
+                <label><input type="radio" name="scope" value="BOTH" checked> BOTH</label>
+              </div>
+            </div>
+          </div>
+          <div class="form-grid full" style="margin-top:12px;">
+            <div class="form-group">
+              <label>설명</label>
+              <textarea placeholder="옵션 그룹에 대한 설명을 입력하세요."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="action-bar">
+          <button class="btn btn-ghost" onclick="cancelForm()">취소</button>
+          <button class="btn btn-primary" onclick="alert('새 그룹이 저장되었습니다.')">그룹 저장</button>
+        </div>
+      </div>
+      <!-- (B) 기존 그룹 옵션값 편집 폼 -->
+      <div id="existGroupForm" style="display:none;">
+        <div class="form-section">
+          <h3 id="egTitle"><span class="section-icon">&#128196;</span> 설치 구성 (OPT-LAY)</h3>
+          <div class="alert-box alert-info" style="margin-bottom:16px;">
+            <span>&#9432;</span> 기존 옵션 값 목록과 새 값 추가 폼입니다. 기존 값은 읽기 전용입니다.
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:100px">코드</th>
+                <th>이름</th>
+                <th style="width:70px">기본값</th>
+                <th style="width:70px">상태</th>
+              </tr>
+            </thead>
+            <tbody id="egTableBody"></tbody>
+          </table>
+          <!-- 새 값 추가 -->
+          <div class="inline-form" id="addValueForm">
+            <input type="text" placeholder="값 코드 (영문)" style="width:100px; text-transform:uppercase" id="newValCode">
+            <input type="text" placeholder="값 이름 (한글)" style="width:140px" id="newValName">
+            <div class="checkbox-group" style="padding:0;">
+              <input type="checkbox" id="newValDefault">
+              <label for="newValDefault" style="font-size:12px;">기본값</label>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addOptionValue()">추가</button>
+          </div>
+        </div>
+        <!-- (C) 제약 조건 -->
+        <div class="form-section">
+          <h3><span class="section-icon">&#9888;</span> 제약 조건</h3>
+          <div id="constraintList"></div>
+          <!-- 제약 조건 추가 폼 -->
+          <div style="margin-top:12px; padding:12px; background:var(--light-bg); border-radius:6px; border:1px solid var(--border);">
+            <div style="font-size:12px; font-weight:600; color:var(--primary); margin-bottom:8px;">새 제약 조건 추가</div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <div class="form-group" style="gap:2px;">
+                <label style="font-size:11px;">유형</label>
+                <select style="padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                  <option>상호배타</option>
+                  <option>필수종속</option>
+                  <option>기본값연동</option>
+                </select>
+              </div>
+              <div class="form-group" style="gap:2px;">
+                <label style="font-size:11px;">IF 조건</label>
+                <div style="display:flex; gap:4px;">
+                  <select style="padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option>OPT-LAY</option><option>OPT-CUT</option><option>OPT-GLZ</option>
+                    <option>OPT-GAS</option><option>OPT-MSQ</option><option>OPT-ACC</option>
+                  </select>
+                  <select style="padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option>=</option><option>&#8800;</option>
+                  </select>
+                  <select style="padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option>SINGLE</option><option>1x2</option><option>1x3</option>
+                    <option>2x2</option><option>L_TYPE</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="gap:2px;">
+                <label style="font-size:11px;">THEN 효과</label>
+                <div style="display:flex; gap:4px;">
+                  <select style="padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option>OPT-CUT</option><option>OPT-LAY</option><option>OPT-GLZ</option>
+                    <option>OPT-GAS</option><option>OPT-MSQ</option><option>OPT-ACC</option>
+                  </select>
+                  <select style="padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option>=</option><option>&#8800;</option><option>기본값</option>
+                  </select>
+                  <select style="padding:6px 8px; font-size:12px; border:1px solid var(--border); border-radius:4px;">
+                    <option>MITER</option><option>BUTT</option><option>MIXED</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:14px;" onclick="addConstraint()">추가</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TAB 2: 옵션별규칙 추가 ========== -->
+<div class="tab-content" id="tab-rule">
+  <div class="layout">
+    <!-- Left: 기존 Rule 목록 -->
+    <div class="panel-left">
+      <div class="panel-title">기존 옵션별규칙 목록</div>
+      <div class="group-list" id="ruleList"></div>
+      <div class="add-btn-wrap">
+        <button class="btn-add-group" onclick="showNewBomRuleForm()">+ 새 옵션별규칙 추가</button>
+      </div>
+    </div>
+    <!-- Right: Rule 등록 폼 -->
+    <div class="panel-right" id="ruleFormArea" style="display:flex; flex-direction:column;">
+      <!-- (A) 규칙 기본정보 -->
+      <div class="form-section">
+        <h3><span class="section-icon">&#128203;</span> 규칙 기본정보</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>옵션별규칙 이름 <span class="req">*</span></label>
+            <input type="text" id="ruleName" placeholder="예: 2연창 직각절단 시 연결재 추가" value="2연창 직각절단 시 연결재 추가">
+          </div>
+          <div class="form-group">
+            <label>우선순위 <span class="req">*</span></label>
+            <input type="number" id="rulePriority" value="6" min="1" max="999" style="width:80px;">
+          </div>
+          <div class="form-group">
+            <label>BOM 유형 <span class="req">*</span></label>
+            <div class="radio-group">
+              <label><input type="radio" name="ruleScope" value="EBOM"> EBOM</label>
+              <label><input type="radio" name="ruleScope" value="MBOM" checked> MBOM</label>
+              <label><input type="radio" name="ruleScope" value="BOTH"> BOTH</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- (B) 조건식 빌더 -->
+      <div class="form-section">
+        <h3><span class="section-icon">&#128295;</span> 조건식 빌더</h3>
+        <div id="conditionBuilder">
+          <!-- 조건 행 1 -->
+          <div class="condition-row" data-idx="0">
+            <select class="cond-group" onchange="updateCondPreview()">
+              <option value="">옵션 그룹 선택</option>
+              <option value="OPT-LAY" selected>OPT-LAY (설치 구성)</option>
+              <option value="OPT-CUT">OPT-CUT (절단 방식)</option>
+              <option value="OPT-GLZ">OPT-GLZ (유리 사양)</option>
+              <option value="OPT-GAS">OPT-GAS (가스 충진)</option>
+              <option value="OPT-MSQ">OPT-MSQ (모기장)</option>
+              <option value="OPT-ACC">OPT-ACC (부속품)</option>
+            </select>
+            <select class="cond-op" onchange="updateCondPreview()">
+              <option value="=">=</option>
+              <option value="!=">&#8800;</option>
+            </select>
+            <select class="cond-val" onchange="updateCondPreview()">
+              <option value="">값 선택</option>
+              <option value="SINGLE">SINGLE (단독)</option>
+              <option value="1x2" selected>1x2 (2연창)</option>
+              <option value="1x3">1x3 (3연창)</option>
+              <option value="2x2">2x2 (2x2 조합)</option>
+              <option value="L_TYPE">L_TYPE (L자 조합)</option>
+            </select>
+            <div class="condition-logic">
+              <button class="btn btn-xs selected" onclick="setLogic(this,'AND')">AND</button>
+              <button class="btn btn-xs btn-ghost" onclick="setLogic(this,'OR')">OR</button>
+            </div>
+            <button class="btn-remove-row" onclick="removeCondRow(this)" title="삭제">&times;</button>
+          </div>
+          <!-- 조건 행 2 -->
+          <div class="condition-row" data-idx="1">
+            <select class="cond-group" onchange="updateCondPreview()">
+              <option value="">옵션 그룹 선택</option>
+              <option value="OPT-LAY">OPT-LAY (설치 구성)</option>
+              <option value="OPT-CUT" selected>OPT-CUT (절단 방식)</option>
+              <option value="OPT-GLZ">OPT-GLZ (유리 사양)</option>
+              <option value="OPT-GAS">OPT-GAS (가스 충진)</option>
+              <option value="OPT-MSQ">OPT-MSQ (모기장)</option>
+              <option value="OPT-ACC">OPT-ACC (부속품)</option>
+            </select>
+            <select class="cond-op" onchange="updateCondPreview()">
+              <option value="=">=</option>
+              <option value="!=">&#8800;</option>
+            </select>
+            <select class="cond-val" onchange="updateCondPreview()">
+              <option value="">값 선택</option>
+              <option value="MITER">MITER (사선절단)</option>
+              <option value="BUTT" selected>BUTT (직각절단)</option>
+              <option value="MIXED">MIXED (혼합)</option>
+            </select>
+            <div class="condition-logic">
+              <button class="btn btn-xs btn-ghost" onclick="setLogic(this,'AND')">AND</button>
+              <button class="btn btn-xs btn-ghost" onclick="setLogic(this,'OR')">OR</button>
+            </div>
+            <button class="btn-remove-row" onclick="removeCondRow(this)" title="삭제">&times;</button>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addCondRow()" style="margin-top:8px;">+ 조건 추가</button>
+        <!-- 조건식 미리보기 -->
+        <div class="condition-preview" id="condPreview">
+          <span class="kw">OPT-LAY</span> <span class="op">=</span> <span class="val">'1x2'</span> <span class="kw">AND</span> <span class="kw">OPT-CUT</span> <span class="op">=</span> <span class="val">'BUTT'</span>
+        </div>
+      </div>
+
+      <!-- (C) 액션 목록 -->
+      <div class="form-section" style="flex:1;">
+        <h3><span class="section-icon">&#9889;</span> 액션 목록</h3>
+        <div id="actionList">
+          <!-- 액션 1: ADD -->
+          <div class="action-row">
+            <select class="action-type" onchange="updateActionFields(this)">
+              <option value="ADD" selected>ADD (추가)</option>
+              <option value="REMOVE">REMOVE (제거)</option>
+              <option value="REPLACE">REPLACE (교체)</option>
+              <option value="QTY_CHANGE">QTY_CHANGE (수량변경)</option>
+              <option value="LOSS_CHANGE">LOSS_CHANGE (로스율변경)</option>
+            </select>
+            <div class="action-fields">
+              <span class="action-type-badge atb-add">ADD</span>
+              <input type="text" placeholder="품목 검색" value="연결재 (CW-CNT-001)" style="width:200px;" readonly>
+              <label style="font-size:12px;">수량:</label>
+              <input type="number" value="2" min="1" style="width:60px;">
+            </div>
+            <button class="btn-remove-row" onclick="removeActionRow(this)" title="삭제">&times;</button>
+          </div>
+          <!-- 액션 2: REPLACE -->
+          <div class="action-row">
+            <select class="action-type" onchange="updateActionFields(this)">
+              <option value="ADD">ADD (추가)</option>
+              <option value="REMOVE">REMOVE (제거)</option>
+              <option value="REPLACE" selected>REPLACE (교체)</option>
+              <option value="QTY_CHANGE">QTY_CHANGE (수량변경)</option>
+              <option value="LOSS_CHANGE">LOSS_CHANGE (로스율변경)</option>
+            </select>
+            <div class="action-fields">
+              <span class="action-type-badge atb-replace">REPLACE</span>
+              <input type="text" placeholder="기존 품목" value="코너캡 A (FR-CC-001)" style="width:170px;" readonly>
+              <span style="font-size:14px; color:#888;">&#8594;</span>
+              <input type="text" placeholder="새 품목" value="직각코너캡 B (FR-CC-002)" style="width:170px;" readonly>
+            </div>
+            <button class="btn-remove-row" onclick="removeActionRow(this)" title="삭제">&times;</button>
+          </div>
+          <!-- 액션 3: LOSS_CHANGE -->
+          <div class="action-row">
+            <select class="action-type" onchange="updateActionFields(this)">
+              <option value="ADD">ADD (추가)</option>
+              <option value="REMOVE">REMOVE (제거)</option>
+              <option value="REPLACE">REPLACE (교체)</option>
+              <option value="QTY_CHANGE">QTY_CHANGE (수량변경)</option>
+              <option value="LOSS_CHANGE" selected>LOSS_CHANGE (로스율변경)</option>
+            </select>
+            <div class="action-fields">
+              <span class="action-type-badge atb-loss">LOSS</span>
+              <input type="text" placeholder="대상 품목" value="프레임 상부 (FR-TOP-001)" style="width:180px;" readonly>
+              <label style="font-size:12px;">로스율:</label>
+              <input type="text" value="1.5%" style="width:55px;" readonly>
+              <span style="font-size:14px; color:#888;">&#8594;</span>
+              <input type="text" value="4.0%" style="width:55px;">
+            </div>
+            <button class="btn-remove-row" onclick="removeActionRow(this)" title="삭제">&times;</button>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addActionRow()" style="margin-top:8px;">+ 액션 추가</button>
+      </div>
+
+      <!-- (D) 시뮬레이션 미리보기 -->
+      <div class="sim-section">
+        <div class="sim-title">
+          <span style="font-size:15px;">&#128270;</span> 시뮬레이션 미리보기 (Base BOM 대비 변경 사항)
+        </div>
+        <div id="simPreview">
+          <div class="sim-item add">
+            <span class="si-icon">+</span>
+            <strong>ADD</strong> 연결재 (CW-CNT-001) x 2EA
+          </div>
+          <div class="sim-item replace">
+            <span class="si-icon">&#8644;</span>
+            <strong>REPLACE</strong> 코너캡 A (FR-CC-001) <span class="arrow">&#8594;</span> 직각코너캡 B (FR-CC-002)
+          </div>
+          <div class="sim-item loss">
+            <span class="si-icon">&#9651;</span>
+            <strong>LOSS_CHANGE</strong> 프레임 상부 (FR-TOP-001): 로스율 1.5% <span class="arrow">&#8594;</span> 4.0%
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단 액션 바 -->
+      <div class="action-bar">
+        <button class="btn btn-ghost" onclick="alert('취소되었습니다.')">취소</button>
+        <button class="btn btn-outline" onclick="runSimulation()">시뮬레이션 실행</button>
+        <button class="btn btn-primary" onclick="saveBomRule()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Data =====
+const optionGroups = [
+  { id:'OPT-LAY', name:'설치 구성', required:true, scope:'BOTH', values:[
+    {code:'SINGLE',name:'단독',isDefault:true,status:'활성'},
+    {code:'1x2',name:'2연창',isDefault:false,status:'활성'},
+    {code:'1x3',name:'3연창',isDefault:false,status:'활성'},
+    {code:'2x2',name:'2x2 조합',isDefault:false,status:'활성'},
+    {code:'L_TYPE',name:'L자 조합',isDefault:false,status:'활성'},
+  ]},
+  { id:'OPT-CUT', name:'절단 방식', required:true, scope:'MBOM', values:[
+    {code:'MITER',name:'사선절단 45\u00B0',isDefault:true,status:'활성'},
+    {code:'BUTT',name:'직각절단 90\u00B0',isDefault:false,status:'활성'},
+    {code:'MIXED',name:'혼합 절단',isDefault:false,status:'활성'},
+  ]},
+  { id:'OPT-GLZ', name:'유리 사양', required:true, scope:'BOTH', values:[
+    {code:'NORMAL',name:'일반 복층 5+6A+5',isDefault:true,status:'활성'},
+    {code:'LOW_E',name:'로이 복층 5+12A+5',isDefault:false,status:'활성'},
+    {code:'TRIPLE',name:'삼중 로이 복층',isDefault:false,status:'활성'},
+  ]},
+  { id:'OPT-GAS', name:'가스 충진', required:false, scope:'BOTH', values:[
+    {code:'NONE',name:'없음',isDefault:true,status:'활성'},
+    {code:'ARGON',name:'아르곤',isDefault:false,status:'활성'},
+  ]},
+  { id:'OPT-MSQ', name:'모기장', required:false, scope:'EBOM', values:[
+    {code:'NONE',name:'없음',isDefault:true,status:'활성'},
+    {code:'ROLL',name:'롤방충망',isDefault:false,status:'활성'},
+    {code:'FIXED',name:'고정방충망',isDefault:false,status:'활성'},
+  ]},
+  { id:'OPT-ACC', name:'부속품', required:false, scope:'MBOM', values:[
+    {code:'STD',name:'표준',isDefault:true,status:'활성'},
+    {code:'PREMIUM',name:'프리미엄',isDefault:false,status:'활성'},
+  ]},
+];
+
+const constraints = [
+  { type:'상호배타', condition:'IF OPT-GLZ = TRIPLE', effect:'THEN OPT-GAS \u2260 NONE' },
+  { type:'필수종속', condition:'IF OPT-LAY = L_TYPE', effect:'THEN OPT-CUT = BUTT' },
+  { type:'기본값연동', condition:'IF OPT-GLZ = LOW_E', effect:'THEN OPT-GAS 기본값 = ARGON' },
+  { type:'상호배타', condition:'IF OPT-MSQ = ROLL', effect:'THEN OPT-ACC \u2260 PREMIUM' },
+];
+
+const existingBomRules = [
+  { name:'2연창 연결재 추가', priority:1, scope:'MBOM', condition:"OPT-LAY = '1x2'", actions:3 },
+  { name:'직각절단 코너캡 교체', priority:2, scope:'MBOM', condition:"OPT-CUT = 'BUTT'", actions:2 },
+  { name:'로이유리 가스킷 변경', priority:3, scope:'BOTH', condition:"OPT-GLZ = 'LOW_E'", actions:1 },
+  { name:'삼중유리 강화프레임', priority:4, scope:'EBOM', condition:"OPT-GLZ = 'TRIPLE'", actions:4 },
+  { name:'프리미엄 부속품 세트', priority:5, scope:'MBOM', condition:"OPT-ACC = 'PREMIUM'", actions:2 },
+];
+
+// ===== Tab Switch =====
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+// ===== Tab 1: Option Group/Value =====
+let selectedGroup = null;
+
+function renderOptGroupList() {
+  const list = document.getElementById('optGroupList');
+  list.innerHTML = optionGroups.map((g,i) => `
+    <div class="group-item ${selectedGroup===i?'active':''}" onclick="selectOptGroup(${i})">
+      <div class="group-code">${g.id}</div>
+      <div class="group-name">${g.name} ${g.required?'<span class="required">*</span>':''}</div>
+      <div class="group-meta">
+        <span class="tag tag-${g.scope.toLowerCase()}">${g.scope}</span>
+        <span class="tag ${g.required?'tag-required':'tag-optional'}">${g.required?'필수':'선택'}</span>
+        <span style="font-size:11px; color:#888;">${g.values.length}개 값</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectOptGroup(idx) {
+  selectedGroup = idx;
+  renderOptGroupList();
+  document.getElementById('optEmptyState').style.display = 'none';
+  document.getElementById('newGroupForm').style.display = 'none';
+  document.getElementById('existGroupForm').style.display = 'block';
+
+  const g = optionGroups[idx];
+  document.getElementById('egTitle').innerHTML = `<span class="section-icon">&#128196;</span> ${g.name} (${g.id})`;
+
+  const tbody = document.getElementById('egTableBody');
+  tbody.innerHTML = g.values.map(v => `
+    <tr>
+      <td><code style="font-family:Consolas,monospace; color:var(--accent);">${v.code}</code></td>
+      <td>${v.name} ${v.isDefault?'<span class="default-badge">기본값</span>':''}</td>
+      <td style="text-align:center;">${v.isDefault?'&#10003;':''}</td>
+      <td><span class="status-active">${v.status}</span></td>
+    </tr>
+  `).join('');
+
+  renderConstraints();
+}
+
+function showNewGroupForm() {
+  selectedGroup = null;
+  renderOptGroupList();
+  document.getElementById('optEmptyState').style.display = 'none';
+  document.getElementById('existGroupForm').style.display = 'none';
+  document.getElementById('newGroupForm').style.display = 'block';
+}
+
+function cancelForm() {
+  document.getElementById('newGroupForm').style.display = 'none';
+  document.getElementById('existGroupForm').style.display = 'none';
+  document.getElementById('optEmptyState').style.display = 'block';
+  selectedGroup = null;
+  renderOptGroupList();
+}
+
+function addOptionValue() {
+  const code = document.getElementById('newValCode').value.trim().toUpperCase();
+  const name = document.getElementById('newValName').value.trim();
+  const isDef = document.getElementById('newValDefault').checked;
+  if (!code || !name) { alert('코드와 이름을 모두 입력해주세요.'); return; }
+  if (selectedGroup === null) return;
+  optionGroups[selectedGroup].values.push({ code, name, isDefault:isDef, status:'활성' });
+  selectOptGroup(selectedGroup);
+  document.getElementById('newValCode').value = '';
+  document.getElementById('newValName').value = '';
+  document.getElementById('newValDefault').checked = false;
+}
+
+function renderConstraints() {
+  const list = document.getElementById('constraintList');
+  list.innerHTML = constraints.map(c => `
+    <div class="constraint-row">
+      <span class="cr-type">${c.type}</span>
+      <span class="cr-condition">${c.condition} ${c.effect}</span>
+    </div>
+  `).join('');
+}
+
+function addConstraint() {
+  alert('새 제약 조건이 추가되었습니다.');
+}
+
+// ===== Tab 2: 옵션별규칙 =====
+function renderBomRuleList() {
+  const list = document.getElementById('ruleList');
+  list.innerHTML = existingBomRules.map((r,i) => `
+    <div class="rule-card" onclick="selectBomRule(${i})">
+      <div class="rc-name">${r.name}</div>
+      <div class="rc-priority">우선순위: ${r.priority} &nbsp;|&nbsp; <span class="tag tag-${r.scope.toLowerCase()}">${r.scope}</span></div>
+      <div class="rc-condition">${r.condition}</div>
+      <div class="rc-actions-count">${r.actions}개 액션</div>
+    </div>
+  `).join('');
+}
+
+function selectBomRule(idx) {
+  document.querySelectorAll('#ruleList .rule-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('#ruleList .rule-card')[idx].classList.add('active');
+}
+
+function showNewBomRuleForm() {
+  document.querySelectorAll('#ruleList .rule-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('ruleName').value = '';
+  document.getElementById('rulePriority').value = existingBomRules.length + 1;
+}
+
+// Condition Builder
+function updateCondPreview() {
+  const rows = document.querySelectorAll('#conditionBuilder .condition-row');
+  let parts = [];
+  rows.forEach((row, i) => {
+    const grp = row.querySelector('.cond-group').value;
+    const op = row.querySelector('.cond-op').value;
+    const val = row.querySelector('.cond-val').value;
+    if (grp && val) {
+      const opStr = op === '!=' ? '\u2260' : '=';
+      if (i > 0) {
+        const prevRow = rows[i-1];
+        const logicBtn = prevRow.querySelector('.condition-logic .selected');
+        const logic = logicBtn ? logicBtn.textContent : 'AND';
+        parts.push(`<span class="kw">${logic}</span>`);
+      }
+      parts.push(`<span class="kw">${grp}</span> <span class="op">${opStr}</span> <span class="val">'${val}'</span>`);
+    }
+  });
+  document.getElementById('condPreview').innerHTML = parts.join(' ') || '<span style="color:#888;">조건을 선택하세요...</span>';
+}
+
+function setLogic(btn, logic) {
+  const wrap = btn.parentElement;
+  wrap.querySelectorAll('.btn').forEach(b => { b.classList.remove('selected'); b.classList.add('btn-ghost'); });
+  btn.classList.add('selected');
+  btn.classList.remove('btn-ghost');
+  updateCondPreview();
+}
+
+function addCondRow() {
+  const builder = document.getElementById('conditionBuilder');
+  const idx = builder.children.length;
+  const div = document.createElement('div');
+  div.className = 'condition-row';
+  div.setAttribute('data-idx', idx);
+  div.innerHTML = `
+    <select class="cond-group" onchange="updateCondPreview()">
+      <option value="">옵션 그룹 선택</option>
+      <option value="OPT-LAY">OPT-LAY (설치 구성)</option>
+      <option value="OPT-CUT">OPT-CUT (절단 방식)</option>
+      <option value="OPT-GLZ">OPT-GLZ (유리 사양)</option>
+      <option value="OPT-GAS">OPT-GAS (가스 충진)</option>
+      <option value="OPT-MSQ">OPT-MSQ (모기장)</option>
+      <option value="OPT-ACC">OPT-ACC (부속품)</option>
+    </select>
+    <select class="cond-op" onchange="updateCondPreview()">
+      <option value="=">=</option>
+      <option value="!=">&#8800;</option>
+    </select>
+    <select class="cond-val" onchange="updateCondPreview()">
+      <option value="">값 선택</option>
+    </select>
+    <div class="condition-logic">
+      <button class="btn btn-xs btn-ghost" onclick="setLogic(this,'AND')">AND</button>
+      <button class="btn btn-xs btn-ghost" onclick="setLogic(this,'OR')">OR</button>
+    </div>
+    <button class="btn-remove-row" onclick="removeCondRow(this)" title="삭제">&times;</button>
+  `;
+  builder.appendChild(div);
+  // populate values based on group selection
+  div.querySelector('.cond-group').addEventListener('change', function() {
+    populateCondValues(this);
+  });
+}
+
+function removeCondRow(btn) {
+  const rows = document.querySelectorAll('#conditionBuilder .condition-row');
+  if (rows.length <= 1) { alert('최소 1개의 조건이 필요합니다.'); return; }
+  btn.closest('.condition-row').remove();
+  updateCondPreview();
+}
+
+function populateCondValues(groupSelect) {
+  const grpId = groupSelect.value;
+  const valSelect = groupSelect.closest('.condition-row').querySelector('.cond-val');
+  const grp = optionGroups.find(g => g.id === grpId);
+  valSelect.innerHTML = '<option value="">값 선택</option>';
+  if (grp) {
+    grp.values.forEach(v => {
+      valSelect.innerHTML += `<option value="${v.code}">${v.code} (${v.name})</option>`;
+    });
+  }
+}
+
+// Action Rows
+function addActionRow() {
+  const list = document.getElementById('actionList');
+  const div = document.createElement('div');
+  div.className = 'action-row';
+  div.innerHTML = `
+    <select class="action-type" onchange="updateActionFields(this)">
+      <option value="ADD">ADD (추가)</option>
+      <option value="REMOVE">REMOVE (제거)</option>
+      <option value="REPLACE">REPLACE (교체)</option>
+      <option value="QTY_CHANGE">QTY_CHANGE (수량변경)</option>
+      <option value="LOSS_CHANGE">LOSS_CHANGE (로스율변경)</option>
+    </select>
+    <div class="action-fields">
+      <span class="action-type-badge atb-add">ADD</span>
+      <input type="text" placeholder="품목 검색" style="width:200px;">
+      <label style="font-size:12px;">수량:</label>
+      <input type="number" value="1" min="1" style="width:60px;">
+    </div>
+    <button class="btn-remove-row" onclick="removeActionRow(this)" title="삭제">&times;</button>
+  `;
+  list.appendChild(div);
+  updateSimPreview();
+}
+
+function removeActionRow(btn) {
+  const rows = document.querySelectorAll('#actionList .action-row');
+  if (rows.length <= 1) { alert('최소 1개의 액션이 필요합니다.'); return; }
+  btn.closest('.action-row').remove();
+  updateSimPreview();
+}
+
+function updateActionFields(sel) {
+  const type = sel.value;
+  const fields = sel.closest('.action-row').querySelector('.action-fields');
+  const badgeClass = { ADD:'atb-add', REMOVE:'atb-remove', REPLACE:'atb-replace', QTY_CHANGE:'atb-qty', LOSS_CHANGE:'atb-loss' };
+  const badgeLabel = { ADD:'ADD', REMOVE:'REMOVE', REPLACE:'REPLACE', QTY_CHANGE:'QTY', LOSS_CHANGE:'LOSS' };
+
+  let html = `<span class="action-type-badge ${badgeClass[type]}">${badgeLabel[type]}</span>`;
+
+  switch(type) {
+    case 'ADD':
+      html += `<input type="text" placeholder="품목 검색" style="width:200px;">
+               <label style="font-size:12px;">수량:</label>
+               <input type="number" value="1" min="1" style="width:60px;">`;
+      break;
+    case 'REMOVE':
+      html += `<input type="text" placeholder="기존 품목 검색" style="width:200px;">
+               <label style="font-size:12px;">수량:</label>
+               <input type="number" value="1" min="1" style="width:60px;">`;
+      break;
+    case 'REPLACE':
+      html += `<input type="text" placeholder="기존 품목" style="width:170px;">
+               <span style="font-size:14px; color:#888;">&#8594;</span>
+               <input type="text" placeholder="새 품목" style="width:170px;">`;
+      break;
+    case 'QTY_CHANGE':
+      html += `<input type="text" placeholder="품목 검색" style="width:200px;">
+               <label style="font-size:12px;">변경 수량:</label>
+               <input type="number" value="1" style="width:60px;">`;
+      break;
+    case 'LOSS_CHANGE':
+      html += `<input type="text" placeholder="대상 품목" style="width:180px;">
+               <label style="font-size:12px;">로스율:</label>
+               <input type="text" placeholder="현재%" style="width:55px;" readonly>
+               <span style="font-size:14px; color:#888;">&#8594;</span>
+               <input type="text" placeholder="변경%" style="width:55px;">`;
+      break;
+  }
+  fields.innerHTML = html;
+  updateSimPreview();
+}
+
+function updateSimPreview() {
+  const rows = document.querySelectorAll('#actionList .action-row');
+  const preview = document.getElementById('simPreview');
+  if (rows.length === 0) {
+    preview.innerHTML = '<div class="sim-empty">액션을 추가하면 시뮬레이션 미리보기가 표시됩니다.</div>';
+    return;
+  }
+  let html = '';
+  rows.forEach(row => {
+    const type = row.querySelector('.action-type').value;
+    const inputs = row.querySelectorAll('.action-fields input');
+    switch(type) {
+      case 'ADD': {
+        const item = inputs[0]?.value || '(품목 미지정)';
+        const qty = inputs[1]?.value || 1;
+        html += `<div class="sim-item add"><span class="si-icon">+</span><strong>ADD</strong> ${item} x ${qty}EA</div>`;
+        break;
+      }
+      case 'REMOVE': {
+        const item = inputs[0]?.value || '(품목 미지정)';
+        const qty = inputs[1]?.value || 1;
+        html += `<div class="sim-item remove"><span class="si-icon">-</span><strong>REMOVE</strong> ${item} x ${qty}EA</div>`;
+        break;
+      }
+      case 'REPLACE': {
+        const old = inputs[0]?.value || '(기존 품목)';
+        const nw = inputs[1]?.value || '(새 품목)';
+        html += `<div class="sim-item replace"><span class="si-icon">&#8644;</span><strong>REPLACE</strong> ${old} <span class="arrow">&#8594;</span> ${nw}</div>`;
+        break;
+      }
+      case 'QTY_CHANGE': {
+        const item = inputs[0]?.value || '(품목 미지정)';
+        const qty = inputs[1]?.value || 0;
+        html += `<div class="sim-item add"><span class="si-icon">&#916;</span><strong>QTY_CHANGE</strong> ${item}: 수량 ${qty>0?'+':''}${qty}</div>`;
+        break;
+      }
+      case 'LOSS_CHANGE': {
+        const item = inputs[0]?.value || '(품목 미지정)';
+        const from = inputs[1]?.value || '?%';
+        const to = inputs[2]?.value || '?%';
+        html += `<div class="sim-item loss"><span class="si-icon">&#9651;</span><strong>LOSS_CHANGE</strong> ${item}: 로스율 ${from} <span class="arrow">&#8594;</span> ${to}</div>`;
+        break;
+      }
+    }
+  });
+  preview.innerHTML = html;
+}
+
+// Validation & Save
+function saveBomRule() {
+  const name = document.getElementById('ruleName').value.trim();
+  if (!name) { alert('옵션별규칙 이름을 입력해주세요.'); return; }
+  const rows = document.querySelectorAll('#conditionBuilder .condition-row');
+  let hasCondition = false;
+  rows.forEach(row => {
+    if (row.querySelector('.cond-group').value && row.querySelector('.cond-val').value) hasCondition = true;
+  });
+  if (!hasCondition) { alert('최소 1개의 조건식을 완성해주세요.'); return; }
+  const actionRows = document.querySelectorAll('#actionList .action-row');
+  if (actionRows.length === 0) { alert('최소 1개의 액션을 추가해주세요.'); return; }
+  alert('옵션별규칙이 저장되었습니다.');
+}
+
+function runSimulation() {
+  const actionRows = document.querySelectorAll('#actionList .action-row');
+  if (actionRows.length === 0) { alert('시뮬레이션할 액션이 없습니다.'); return; }
+  updateSimPreview();
+  alert('시뮬레이션이 실행되었습니다. 하단 미리보기를 확인하세요.');
+}
+
+// ===== Init =====
+renderOptGroupList();
+renderBomRuleList();
+</script>
+</body>
+</html>

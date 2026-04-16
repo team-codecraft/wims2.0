@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIMS 2.0 - 옵션구성 편집화면</title>
+<style>
+  :root {
+    --primary: #1F4E79;
+    --accent: #2E75B6;
+    --header-bg: #D6E4F0;
+    --light-bg: #F2F7FB;
+    --success: #2E7D32;
+    --success-bg: #E8F5E9;
+    --replace: #1565C0;
+    --replace-bg: #E3F2FD;
+    --danger: #C62828;
+    --danger-bg: #FFEBEE;
+    --option: #7B1FA2;
+    --option-bg: #F3E5F5;
+    --border: #E0E0E0;
+    --font-family: '맑은 고딕', 'Malgun Gothic', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-family); background: #f0f2f5; color: #333; font-size: 13px; }
+
+  /* ===== Top Header ===== */
+  .top-header {
+    height: 50px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .nav-item {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .nav-item.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-weight: 600;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+  }
+  .breadcrumb {
+    color: rgba(255,255,255,0.8);
+  }
+  .breadcrumb strong {
+    color: #fff;
+  }
+  .user-info {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Layout */
+  .layout { display: flex; height: calc(100vh - 50px); gap: 1px; background: #ddd; }
+
+  /* Left Panel */
+  .panel-left { width: 20%; min-width: 220px; background: #fff; display: flex; flex-direction: column; }
+  .panel-left .panel-title { background: var(--header-bg); color: var(--primary); padding: 8px 12px; font-size: 13px; font-weight: 700; }
+  .group-list { flex: 1; overflow-y: auto; }
+  .group-item { padding: 12px 16px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; gap: 4px; }
+  .group-item:hover { background: #F5F5F5; }
+  .group-item.active { background: #E3F2FD; border-left: 3px solid var(--accent); }
+  .group-item .group-code { font-size: 11px; color: #888; font-family: 'Consolas', monospace; }
+  .group-item .group-name { font-size: 13px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; }
+  .group-item .group-name .required { color: #e74c3c; font-size: 12px; }
+  .group-item .group-name .optional-mark { color: #aaa; font-size: 12px; }
+  .group-item .group-meta { display: flex; gap: 6px; margin-top: 2px; }
+  .tag { font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  .tag-both { background: var(--success-bg); color: var(--success); }
+  .tag-mbom { background: #fff3e0; color: #e65100; }
+  .tag-required { background: var(--danger-bg); color: var(--danger); }
+  .tag-optional { background: #f5f5f5; color: #888; }
+  .group-item .group-selected { font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+  /* Center Panel */
+  .panel-center { width: 40%; background: #fff; display: flex; flex-direction: column; }
+  .panel-center .panel-title { background: var(--header-bg); color: var(--primary); padding: 8px 12px; font-size: 13px; font-weight: 700; }
+
+  /* Summary bar */
+  .summary-bar { background: var(--light-bg); border-bottom: 1px solid var(--border); padding: 10px 16px; }
+  .summary-bar h3 { font-size: 12px; color: #666; margin-bottom: 6px; }
+  .summary-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { background: var(--header-bg); color: var(--primary); padding: 3px 8px; border-radius: 12px; font-size: 11px; display: flex; align-items: center; gap: 3px; }
+  .chip .chip-label { color: #888; }
+
+  /* Option Table */
+  .option-content { flex: 1; overflow-y: auto; padding: 16px; }
+  .option-table { width: 100%; border-collapse: collapse; }
+  .option-table thead th { background: var(--header-bg); color: var(--primary); padding: 8px 12px; text-align: left; font-size: 12px; font-weight: 700; border-bottom: 2px solid var(--accent); }
+  .option-table tbody td { padding: 10px 12px; border-bottom: 1px solid #E8E8E8; }
+  .option-table tbody tr { height: 36px; }
+  .option-table tbody tr:nth-child(even) { background: #F8FAFC; }
+  .option-table tbody tr:hover { background: #F5F5F5; }
+  .option-table tbody tr.selected { background: #E3F2FD; }
+  .radio-label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .radio-label input[type="radio"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+  .default-badge { font-size: 11px; background: var(--primary); color: #fff; padding: 2px 6px; border-radius: 3px; }
+
+  /* Constraints */
+  .constraints-section { border-top: 2px solid var(--border); padding: 12px 16px; background: var(--light-bg); }
+  .constraints-section h3 { font-size: 12px; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+  .constraint-item { padding: 6px 10px; margin-bottom: 4px; border-radius: 4px; font-size: 12px; display: flex; align-items: flex-start; gap: 6px; background: #fff; border: 1px solid var(--border); }
+  .constraint-item.violated { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+  .constraint-item.satisfied { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+  .constraint-item .icon { font-size: 14px; flex-shrink: 0; }
+
+  /* Right Panel */
+  .panel-right { width: 40%; background: #fff; display: flex; flex-direction: column; }
+  .panel-right .panel-title { background: var(--header-bg); color: var(--primary); padding: 8px 12px; font-size: 13px; font-weight: 700; }
+
+  /* Rule Cards */
+  .rules-section { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .rules-section-title { font-size: 12px; color: #888; font-weight: 600; padding: 4px 4px 8px; border-bottom: 1px solid #eee; margin-bottom: 4px; }
+  .rule-card { border: 1px solid #d0d8e0; border-radius: 6px; overflow: hidden; transition: box-shadow 0.2s; }
+  .rule-card.active { border-color: var(--accent); box-shadow: 0 2px 8px rgba(46,117,182,0.15); }
+  .rule-card.inactive { opacity: 0.45; }
+  .rule-card .rule-header { padding: 8px 12px; font-size: 12px; font-weight: 600; color: var(--primary); background: var(--light-bg); display: flex; justify-content: space-between; align-items: center; }
+  .rule-card .rule-header .match-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+  .match-badge.matched { background: var(--success-bg); color: var(--success); }
+  .match-badge.unmatched { background: #f1f1f1; color: #999; }
+  .rule-card .rule-condition { padding: 6px 12px; font-size: 11px; font-family: 'Consolas', monospace; background: #fafafa; color: #555; border-top: 1px solid #eee; }
+  .rule-card .rule-actions { padding: 8px 12px; font-size: 12px; border-top: 1px solid #eee; }
+  .rule-action { padding: 2px 0; display: flex; align-items: center; gap: 6px; }
+  .action-add { color: var(--success); }
+  .action-remove { color: var(--danger); text-decoration: line-through; }
+  .action-replace { color: var(--replace); }
+  .action-loss { color: var(--danger); }
+
+  /* Preview Section */
+  .preview-section { border-top: 2px solid var(--primary); background: var(--light-bg); padding: 12px; max-height: 45%; overflow-y: auto; }
+  .preview-title { font-size: 12px; color: var(--primary); font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .preview-item { padding: 5px 10px; margin-bottom: 3px; border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .preview-item.add { background: var(--success-bg); color: var(--success); border-left: 3px solid var(--success); }
+  .preview-item.remove { background: var(--danger-bg); color: var(--danger); border-left: 3px solid var(--danger); text-decoration: line-through; }
+  .preview-item.replace { background: var(--replace-bg); color: var(--replace); border-left: 3px solid var(--replace); }
+  .preview-item.loss { background: var(--danger-bg); color: var(--danger); border-left: 3px solid var(--danger); }
+  .preview-item .pi-icon { font-size: 14px; flex-shrink: 0; }
+  .preview-empty { text-align: center; color: #aaa; padding: 20px; font-size: 12px; }
+  .arrow { margin: 0 4px; }
+</style>
+</head>
+<body>
+
+<header class="top-header">
+  <div class="header-left">
+    <span class="logo">WIMS 2.0</span>
+    <nav class="header-nav">
+      <a href="#" class="nav-item active">제품관리</a>
+      <a href="#" class="nav-item">견적설계</a>
+      <a href="#" class="nav-item">발주관리</a>
+      <a href="#" class="nav-item">제조관리</a>
+      <a href="#" class="nav-item">시스템</a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <span class="breadcrumb">제품관리 &gt; <strong>옵션구성</strong></span>
+    <span class="user-info">김지광</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Left Panel: Option Groups -->
+  <div class="panel-left">
+    <div class="panel-title">옵션 그룹 목록</div>
+    <div class="group-list" id="groupList"></div>
+  </div>
+
+  <!-- Center Panel: Option Values + Constraints -->
+  <div class="panel-center">
+    <div class="panel-title" id="centerTitle">옵션 값 테이블</div>
+    <div class="summary-bar">
+      <h3>현재 옵션 조합 요약</h3>
+      <div class="summary-chips" id="summaryChips"></div>
+    </div>
+    <div class="option-content">
+      <table class="option-table">
+        <thead>
+          <tr>
+            <th style="width:40px">선택</th>
+            <th>옵션 값</th>
+            <th style="width:80px">비고</th>
+          </tr>
+        </thead>
+        <tbody id="optionBody"></tbody>
+      </table>
+    </div>
+    <div class="constraints-section">
+      <h3><span style="font-size:14px">&#9888;</span> 제약 조건</h3>
+      <div id="constraintsList"></div>
+    </div>
+  </div>
+
+  <!-- Right Panel: 옵션별규칙 + Preview -->
+  <div class="panel-right">
+    <div class="panel-title">옵션별규칙 &amp; 해석 미리보기</div>
+    <div class="rules-section" id="rulesSection">
+      <div class="rules-section-title">옵션별규칙 카드</div>
+    </div>
+    <div class="preview-section">
+      <div class="preview-title"><span style="font-size:14px">&#128270;</span> 실시간 해석 미리보기 (Base BOM 대비)</div>
+      <div id="previewList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// === DATA ===
+const optionGroups = [
+  {
+    id: 'OPT-LAY', name: '설치 구성', required: true, scope: 'BOTH',
+    values: [
+      { key: 'SINGLE', label: '단독', isDefault: true },
+      { key: '1x2', label: '2연창', isDefault: false },
+      { key: '1x3', label: '3연창', isDefault: false },
+      { key: '2x2', label: '2x2 조합', isDefault: false },
+      { key: 'L_TYPE', label: 'L자 조합', isDefault: false },
+    ]
+  },
+  {
+    id: 'OPT-CUT', name: '절단 방식', required: true, scope: 'MBOM',
+    values: [
+      { key: 'MITER', label: '사선절단 45\u00B0', isDefault: true },
+      { key: 'BUTT', label: '직각절단 90\u00B0', isDefault: false },
+      { key: 'MIXED', label: '혼합 절단', isDefault: false },
+    ]
+  },
+  {
+    id: 'OPT-GLZ', name: '유리 사양', required: true, scope: 'BOTH',
+    values: [
+      { key: 'NORMAL', label: '일반 복층 5+6A+5', isDefault: true },
+      { key: 'LOW-E', label: '로이 복층 5+12A+5', isDefault: false },
+      { key: 'TRIPLE', label: '삼중유리', isDefault: false },
+      { key: 'TEMPERED', label: '강화유리', isDefault: false },
+    ]
+  },
+  {
+    id: 'OPT-MAT', name: '프레임 재질', required: true, scope: 'BOTH',
+    values: [
+      { key: 'PVC', label: 'PVC', isDefault: true },
+      { key: 'ALU', label: '알루미늄', isDefault: false },
+      { key: 'ALU_INS', label: '알루미늄+단열재', isDefault: false },
+      { key: 'HYBRID', label: '하이브리드', isDefault: false },
+    ]
+  },
+  {
+    id: 'OPT-FIN', name: '색상/표면처리', required: true, scope: 'MBOM',
+    values: [
+      { key: 'WHITE', label: '백색', isDefault: true },
+      { key: 'BROWN', label: '브라운', isDefault: false },
+      { key: 'GRAY', label: '그레이', isDefault: false },
+      { key: 'WOOD', label: '우드그레인', isDefault: false },
+      { key: 'ANODIZE', label: '아노다이징', isDefault: false },
+      { key: 'POWDER', label: '분체도장', isDefault: false },
+    ]
+  },
+  {
+    id: 'OPT-ACC', name: '부속 선택', required: false, scope: 'BOTH',
+    values: [
+      { key: 'WIND_CLOSER', label: '윈드클로저', isDefault: false, checkbox: true },
+      { key: 'MESH', label: '미세먼지 방충망', isDefault: false, checkbox: true },
+      { key: 'FOLDING_HANDLE', label: '폴딩 핸들', isDefault: false, checkbox: true },
+    ]
+  },
+];
+
+// Current selections
+const selections = {};
+optionGroups.forEach(g => {
+  if (g.id === 'OPT-ACC') {
+    selections[g.id] = {};
+    g.values.forEach(v => { selections[g.id][v.key] = false; });
+  } else {
+    const def = g.values.find(v => v.isDefault);
+    selections[g.id] = def ? def.key : g.values[0].key;
+  }
+});
+
+let activeGroupId = 'OPT-LAY';
+
+// Constraints
+const constraints = [
+  {
+    id: 'C1', desc: 'L자 조합 선택 시 직각절단만 허용',
+    check: () => selections['OPT-LAY'] === 'L_TYPE' && selections['OPT-CUT'] !== 'BUTT',
+    violated: () => selections['OPT-LAY'] === 'L_TYPE' && selections['OPT-CUT'] !== 'BUTT',
+    relevant: () => selections['OPT-LAY'] === 'L_TYPE',
+  },
+  {
+    id: 'C2', desc: '2x2 조합 선택 시 알루미늄 재질 필수',
+    check: () => selections['OPT-LAY'] === '2x2' && !['ALU','ALU_INS'].includes(selections['OPT-MAT']),
+    violated: () => selections['OPT-LAY'] === '2x2' && !['ALU','ALU_INS'].includes(selections['OPT-MAT']),
+    relevant: () => selections['OPT-LAY'] === '2x2',
+  },
+  {
+    id: 'C3', desc: '연창(\u2260단독) 선택 시 윈드클로저 기본 적용',
+    check: () => false,
+    violated: () => false,
+    relevant: () => selections['OPT-LAY'] !== 'SINGLE',
+  },
+  {
+    id: 'C4', desc: 'PVC 재질 선택 시 아노다이징 불가',
+    check: () => selections['OPT-MAT'] === 'PVC' && selections['OPT-FIN'] === 'ANODIZE',
+    violated: () => selections['OPT-MAT'] === 'PVC' && selections['OPT-FIN'] === 'ANODIZE',
+    relevant: () => selections['OPT-MAT'] === 'PVC' || selections['OPT-FIN'] === 'ANODIZE',
+  },
+];
+
+// 옵션별규칙
+const bomOptionRules = [
+  {
+    id: 'R1', name: '2연창 연결프레임 추가',
+    condition: "OPT-LAY = '1x2'",
+    match: () => selections['OPT-LAY'] === '1x2',
+    actions: [
+      { type: 'add', text: '연결프레임 1EA' },
+      { type: 'add', text: '가스켓 1SET' },
+      { type: 'remove', text: '독립우틀' },
+    ]
+  },
+  {
+    id: 'R2', name: '직각절단 부자재',
+    condition: "OPT-CUT = 'BUTT'",
+    match: () => selections['OPT-CUT'] === 'BUTT',
+    actions: [
+      { type: 'loss', text: 'LOSS 1.5% 적용' },
+      { type: 'add', text: '코너캡 16EA' },
+    ]
+  },
+  {
+    id: 'R3', name: '로이유리 변경',
+    condition: "OPT-GLZ = 'LOW-E'",
+    match: () => selections['OPT-GLZ'] === 'LOW-E',
+    actions: [
+      { type: 'replace', text: '투명유리 \u2192 로이유리' },
+      { type: 'replace', text: '6mm 간봉 \u2192 12mm 간봉' },
+    ]
+  },
+  {
+    id: 'R4', name: 'PVC 코너용접',
+    condition: "OPT-CUT = 'MITER' AND OPT-MAT = 'PVC'",
+    match: () => selections['OPT-CUT'] === 'MITER' && selections['OPT-MAT'] === 'PVC',
+    actions: [
+      { type: 'add', text: '용접봉 1SET' },
+      { type: 'add', text: '용접공정 추가' },
+    ]
+  },
+  {
+    id: 'R5', name: '윈드클로저 추가',
+    condition: "OPT-ACC.WIND_CLOSER = 'YES'",
+    match: () => selections['OPT-ACC']['WIND_CLOSER'] === true,
+    actions: [
+      { type: 'add', text: '윈드클로저 2EA' },
+      { type: 'add', text: '나사 4EA' },
+    ]
+  },
+];
+
+// === RENDER FUNCTIONS ===
+
+function renderGroupList() {
+  const el = document.getElementById('groupList');
+  el.innerHTML = '';
+  optionGroups.forEach(g => {
+    const div = document.createElement('div');
+    div.className = 'group-item' + (g.id === activeGroupId ? ' active' : '');
+    div.onclick = () => { activeGroupId = g.id; render(); };
+
+    const selText = getSelectionLabel(g);
+
+    div.innerHTML = `
+      <div class="group-code">${g.id}</div>
+      <div class="group-name">
+        ${g.required ? '<span class="required">*</span>' : '<span class="optional-mark">\u25CB</span>'}
+        ${g.name}
+      </div>
+      <div class="group-meta">
+        <span class="tag ${g.scope === 'BOTH' ? 'tag-both' : 'tag-mbom'}">${g.scope}</span>
+        <span class="tag ${g.required ? 'tag-required' : 'tag-optional'}">${g.required ? '\uD544\uC218' : '\uC120\uD0DD'}</span>
+      </div>
+      <div class="group-selected">\u2714 ${selText}</div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function getSelectionLabel(g) {
+  if (g.id === 'OPT-ACC') {
+    const selected = g.values.filter(v => selections[g.id][v.key]);
+    return selected.length > 0 ? selected.map(v => v.label).join(', ') : '\uC120\uD0DD \uC5C6\uC74C';
+  }
+  const val = g.values.find(v => v.key === selections[g.id]);
+  return val ? val.label : '';
+}
+
+function renderOptionTable() {
+  const g = optionGroups.find(gr => gr.id === activeGroupId);
+  document.getElementById('centerTitle').textContent = `${g.name} (${g.id})`;
+  const tbody = document.getElementById('optionBody');
+  tbody.innerHTML = '';
+
+  if (g.id === 'OPT-ACC') {
+    g.values.forEach(v => {
+      const tr = document.createElement('tr');
+      tr.className = selections[g.id][v.key] ? 'selected' : '';
+      tr.innerHTML = `
+        <td>
+          <label class="radio-label">
+            <input type="checkbox" ${selections[g.id][v.key] ? 'checked' : ''}
+              onchange="toggleAcc('${v.key}', this.checked)">
+          </label>
+        </td>
+        <td>${v.label}</td>
+        <td></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } else {
+    g.values.forEach(v => {
+      const tr = document.createElement('tr');
+      tr.className = selections[g.id] === v.key ? 'selected' : '';
+      tr.innerHTML = `
+        <td>
+          <label class="radio-label">
+            <input type="radio" name="opt_${g.id}" value="${v.key}"
+              ${selections[g.id] === v.key ? 'checked' : ''}
+              onchange="selectOption('${g.id}', '${v.key}')">
+          </label>
+        </td>
+        <td>${v.label} ${v.isDefault ? '<span class="default-badge">\uAE30\uBCF8</span>' : ''}</td>
+        <td>${v.isDefault ? '\uAE30\uBCF8\uAC12' : ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+function renderSummary() {
+  const el = document.getElementById('summaryChips');
+  el.innerHTML = '';
+  optionGroups.forEach(g => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    const label = getSelectionLabel(g);
+    chip.innerHTML = `<span class="chip-label">${g.name}:</span> ${label}`;
+    el.appendChild(chip);
+  });
+}
+
+function renderConstraints() {
+  const el = document.getElementById('constraintsList');
+  el.innerHTML = '';
+  constraints.forEach(c => {
+    const div = document.createElement('div');
+    const isViolated = c.violated();
+    const isRelevant = c.relevant();
+    div.className = 'constraint-item' + (isViolated ? ' violated' : (isRelevant ? ' satisfied' : ''));
+    const icon = isViolated ? '\u274C' : (isRelevant ? '\u2705' : '\u2B1C');
+    div.innerHTML = `<span class="icon">${icon}</span><span>${c.desc}${isViolated ? ' \u2014 <strong>\uC704\uBC18!</strong>' : ''}</span>`;
+    el.appendChild(div);
+  });
+}
+
+function renderOptionRules() {
+  const container = document.getElementById('rulesSection');
+  container.innerHTML = '<div class="rules-section-title">옵션별규칙 카드</div>';
+
+  // Auto-apply constraint C3: multi-window -> wind closer
+  if (selections['OPT-LAY'] !== 'SINGLE') {
+    selections['OPT-ACC']['WIND_CLOSER'] = true;
+  }
+
+  bomOptionRules.forEach(r => {
+    const matched = r.match();
+    const card = document.createElement('div');
+    card.className = 'rule-card' + (matched ? ' active' : ' inactive');
+
+    let actionsHtml = r.actions.map(a => {
+      const cls = 'action-' + a.type;
+      const icons = { add: '\u2795', remove: '\u2796', replace: '\u21C4', loss: '\u26A0' };
+      return `<div class="rule-action ${cls}">${icons[a.type] || ''} ${a.text}</div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="rule-header">
+        <span>${r.id} ${r.name}</span>
+        <span class="match-badge ${matched ? 'matched' : 'unmatched'}">${matched ? '\uB9E4\uCE6D' : '\uBE44\uD65C\uC131'}</span>
+      </div>
+      <div class="rule-condition">IF ${r.condition}</div>
+      <div class="rule-actions">${actionsHtml}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderPreview() {
+  const el = document.getElementById('previewList');
+  el.innerHTML = '';
+
+  const matchedOptionRules = bomOptionRules.filter(r => r.match());
+
+  if (matchedOptionRules.length === 0) {
+    el.innerHTML = '<div class="preview-empty">Base BOM \uB300\uBE44 \uBCC0\uACBD \uC0AC\uD56D \uC5C6\uC74C<br>(\uC635\uC158\uC744 \uBCC0\uACBD\uD558\uBA74 \uC2E4\uC2DC\uAC04 \uC5C5\uB370\uC774\uD2B8\uB429\uB2C8\uB2E4)</div>';
+    return;
+  }
+
+  const icons = { add: '\u2795', remove: '\u2796', replace: '\u2194', loss: '\u26A0\uFE0F' };
+  matchedOptionRules.forEach(r => {
+    r.actions.forEach(a => {
+      const div = document.createElement('div');
+      div.className = 'preview-item ' + a.type;
+      div.innerHTML = `<span class="pi-icon">${icons[a.type]}</span><span>[${r.id}] ${a.text}</span>`;
+      el.appendChild(div);
+    });
+  });
+}
+
+// === EVENT HANDLERS ===
+function selectOption(groupId, key) {
+  selections[groupId] = key;
+  render();
+}
+
+function toggleAcc(key, checked) {
+  selections['OPT-ACC'][key] = checked;
+  render();
+}
+
+function render() {
+  renderGroupList();
+  renderOptionTable();
+  renderSummary();
+  renderConstraints();
+  renderOptionRules();
+  renderPreview();
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
