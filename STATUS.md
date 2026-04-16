@@ -6,7 +6,7 @@
 
 - **스프린트:** S1 (04.06 ~ 04.19) — Gate 1 진입
 - **다음 Gate:** Gate 1 (04.19) — AN 산출물 + MES API 인터페이스 확정
-- **최근 변화 (04.15~04.16):** 유니크시스템 참고자료 5건 분석 → BOM 도메인 용어사전 v1.0 → v1.1 → v1.2 → **v1.3** 진화 → 후속 6개 설계 문서 일괄 개정 → 6관점 검증(V1~V6) + 3관점 크로스체크(CX1~CX3) + P0/P1/P2 정정 완료
+- **최근 변화 (04.15~04.16):** 유니크시스템 참고자료 5건 분석 → BOM 도메인 용어사전 v1.0 → v1.1 → v1.2 → **v1.3** 진화 → 후속 6개 설계 문서 일괄 개정 → 6관점 검증(V1~V6) + 3관점 크로스체크(CX1~CX3) + P0/P1/P2 정정 완료. **BOM 옵션별규칙 관리 UI 설계 (3뷰 체계) 신규 스펙 → 용어사전 v1.4 + 하위 6개 문서 r2 개정**
 
 ## 완료된 산출물
 
@@ -20,7 +20,7 @@
 - AN11-1 사전설문조사서 v1.0 — md / docx
 - AN11-2 사전설문조사 결과서 v1.0 — md / docx
 - AN12-1 요구사항목록 v1.5 — md / xlsx
-- AN12-1-P1 요구사항정의서 Phase1 **v1.1** — md (2026-04-16, FR-PM-018~024 신규 7건 + 개정 4건 + NFR 3건. 총 67 요구사항. v1.0 보존)
+- AN12-1-P1 요구사항정의서 Phase1 **v1.1-r1** — md (2026-04-16, FR-PM-025/026/027 신설 + FR-PM-012 `BOM_RULE` +5컬럼 보강 + NFR-PF-PM-004/005 신설. 총 70 FR + 5 신규 NFR. v1.1 보존)
 - AN12-1-P2 요구사항정의서 Phase2 v1.0 — md / docx
 - AN21 총괄 업무흐름도 v1.0 — md
 - AN21-1~5 서브시스템별 업무흐름도 v1.0 — md
@@ -30,11 +30,11 @@
 - AN41-1 총괄 테스트 계획서 v1.0 — md
 
 ### S1~S2 (DE 단계, 선행 작성)
-- DE35-1 미서기이중창 표준 BOM 구조 정의서 **v1.5-r1** — md (2026-04-16, 단독 SOT 재구성. 엔티티 6개 확장 + 신규 3개. BOM_RULE 카탈로그 10건. v1.4 보존)
-- DE32-1 BOM 도메인 ER 다이어그램 **v1.0** — md (2026-04-16, **신규**. 엔티티 17개·관계 27건·Mermaid 5개·인덱스 12건)
+- DE35-1 미서기이중창 표준 BOM 구조 정의서 **v1.5-r2** — md (2026-04-16, [[2026-04-16-bom-rule-ui-design]] 반영. BOM_RULE +5컬럼, RULE_TEMPLATE·BOM_RULE_HISTORY 신설, 템플릿 컴파일 규칙. v1.5-r1 보존)
+- DE32-1 BOM 도메인 ER 다이어그램 **v1.1** — md (2026-04-16, BOM_RULE +5컬럼, RULE_TEMPLATE·BOM_RULE_HISTORY 엔티티 신설, erDiagram 관계 추가. 엔티티 19개·후속 섹션 +2 재번호. v1.0 보존)
 - DE24-1 MES REST API 인터페이스 설계서 **v1.8** — md (2026-04-16, DTO +8필드, 쿼리 ?supplyDivision/?debug, 에러 2종 추가, frozen 불변성 3중 명문화. v1.7 보존)
-- DE22-1 화면설계서 **v1.5-r1** — md **분산 구조** (메인 인덱스 + sections/ 8개. 총 28 화면. SCR-PM-017 파생제품/SCR-PM-018 다이스북/SCR-PM-019 공급사/SCR-PM-020 자재↔공급사 신설. v1.4 보존)
-- DE11-1 소프트웨어 아키텍처 설계서 **v1.2** — md (2026-04-16, ER 27컬럼 + 신규 3엔티티, RuleEngine 7단계 파이프라인, AST 캐시·SLA 명세. v1.1 보존)
+- DE22-1 화면설계서 **v1.5-r2** — md **분산 구조** (메인 인덱스 + sections/ 8개. 총 28 화면. §9.3.4 옵션별규칙 관리 3뷰 체계(📋 템플릿 갤러리 / 📊 결정표 / ⚙️ 전문가) 재구성 + §9.3.4.4 시뮬레이터 패널. v1.5-r1 보존)
+- DE11-1 소프트웨어 아키텍처 설계서 **v1.3** — md (2026-04-16, §11.7 템플릿 컴파일러 / §11.8 시뮬레이터 API(POST /pm/rules/simulate) / §11.9 결정표 API(GET /pm/rules/decision-table) 신설. v1.2 보존)
 - WIMS_BOM구성에_대한_고찰 v1.2 — md (DE35-1 부록D, v1.3 반영 보강 후속 예정)
 
 ### 참고자료 분석 (2026-04-15 신규)
@@ -54,7 +54,8 @@
 - v1.0 (2026-04-14) — 초안
 - v1.1 (2026-04-15) — §9~§16 신규. CuttingBOM/ProductSeries/LayoutType 엔티티 제안 (이후 철회)
 - v1.2 (2026-04-16) — 엔티티 신설 철회, 기존 엔티티 확장으로 흡수
-- **v1.3 (2026-04-16, 최신)** — 검증 V1~V6 Blocker/P0 반영. supplyDivision 단일화 / *_evaluated snapshot / NUMERIC 옵션 해시 제외 / enablement_condition / BOM_RULE action 4동사 / itemCategory enum / 길이 기반 lossRate
+- v1.3 (2026-04-16) — 검증 V1~V6 Blocker/P0 반영. supplyDivision 단일화 / *_evaluated snapshot / NUMERIC 옵션 해시 제외 / enablement_condition / BOM_RULE action 4동사 / itemCategory enum / 길이 기반 lossRate
+- **v1.4 (2026-04-16, 최신)** — [[2026-04-16-bom-rule-ui-design]] 반영. §13 재조직(13.1~13.6), §13.3 RULE_TEMPLATE / §13.4 BOM_RULE 확장 5컬럼 / §13.5 BOM_RULE_HISTORY, §13.1 `IN` 연산자, §2 엔티티 +2, §7 QTY_CHANGE·LOSS_CHANGE 저장 모델 금지
 
 ## S1 Gate 1 산출물 현황 (~04.19)
 - AN22-1 현행 데이터 분석서 — md / docx (완료)
@@ -85,8 +86,10 @@
 - BOM 고찰(부록 D) v1.3 반영 보강
 
 ### Gate 1 직후
-- Flyway 마이그레이션 스크립트 작성 — PRODUCT(+5), OPTION_VALUE(+5), MBOM(+9), ITEM(+3), BOM_RULE(+3), RESOLVED_BOM(+2) + 신규 3 테이블
-- RuleEngine `wims-rule-engine` 모듈 BE 구현 착수 (DE11-1 §11 명세)
+- Flyway 마이그레이션 스크립트 작성 — PRODUCT(+5), OPTION_VALUE(+5), MBOM(+9), ITEM(+3), **BOM_RULE(+5)**, RESOLVED_BOM(+2) + 신규 **5 테이블 (기존 3 + RULE_TEMPLATE + BOM_RULE_HISTORY)** + 빌트인 템플릿 6종 시드
+- RuleEngine `wims-rule-engine` 모듈 BE 구현 착수 (DE11-1 §11 명세, §11.7 템플릿 컴파일러 포함)
+- **BOM 옵션별규칙 UI 3뷰 체계 FE/BE 구현 착수** — 시뮬레이터 API(§11.8) / 결정표 API(§11.9) / 템플릿 컴파일러(§11.7). Flyway 마이그레이션 V{n}__rule_templates_seed.sql (빌트인 6종). 상세 스펙 [[2026-04-16-bom-rule-ui-design]]
+- **개방 이슈** (스펙 §개방 이슈 6건): scope_type=ESTIMATE 오버레이 로직은 Phase 2 ES 설계에 위임 / 템플릿 승격 마법사 UX 는 S3~S4 / 초기 빌트인 6종 커버리지는 실제 규칙 샘플과 대조 후 확정 필요
 - DE22-1 신설 화면(SCR-PM-017~020) FE 구현 설계 보완
 
 ### 변경 관리
