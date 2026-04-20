@@ -13,7 +13,7 @@ tags:
   - api
   - bom
 related:
-  - "[[WIMS_용어사전_BOM_v1.3]]"
+  - "[[WIMS_용어사전_BOM_v1.4]]"
   - "[[V3_기존설계문서_영향도]]"
   - "[[V4_비즈니스규칙_수용성]]"
   - "[[DE35-1_미서기이중창_표준BOM구조_정의서_v1.5]]"
@@ -35,7 +35,7 @@ related:
 **상태:** 초안 — Gate 1(2026-04-19) MES팀 서명 대상
 
 > [!info] v1.8 개정 범위 요약
-> 용어사전 BOM v1.3 (2026-04-16) 반영. Resolved BOM 응답 DTO 에 절단 속성 8개(`itemCategory`, `cutDirection`, `cutLength`, `cutLength2`, `cutQty`, `actualCutLength`, `supplyDivision`, `ruleEngineVersion`) 추가. `?supplyDivision`·`?debug` 쿼리 파라미터 신설. frozen 이후 재평가 금지 계약 명문화. `optionsHash` 산출 규칙(NUMERIC 옵션 제외) API 계약에 반영. 에러코드 2종 신설(`OPTION_ENABLEMENT_VIOLATION`, `FORMULA_EVALUATION_ERROR`).
+> 용어사전 BOM v1.4 (2026-04-16) 반영. Resolved BOM 응답 DTO 에 절단 속성 8개(`itemCategory`, `cutDirection`, `cutLength`, `cutLength2`, `cutQty`, `actualCutLength`, `supplyDivision`, `ruleEngineVersion`) + 트리 식별 키 2개(`nodeId`, `parentNodeId`, MES 요청) 추가. `?supplyDivision`·`?debug` 쿼리 파라미터 신설. frozen 이후 재평가 금지 계약 명문화. `optionsHash` 산출 규칙(NUMERIC 옵션 제외) API 계약에 반영. 에러코드 2종 신설(`OPTION_ENABLEMENT_VIOLATION`, `FORMULA_EVALUATION_ERROR`).
 >
 > **철회 엔드포인트 재확인:** v1.2 신설 제안이었던 `/cutting-bom/{cuttingBomKey}` 는 v1.3 에서 최종 철회 확정. 본 문서 어디에도 등장하지 않으며, Resolved BOM 응답 확장으로 대체.
 
@@ -45,7 +45,7 @@ related:
 
 | 버전 | 일자 | 작성자 | 변경 내용 |
 |------|------|--------|----------|
-| **v1.8** | **2026.04.16** | **김진호** | **용어사전 BOM v1.3 정합 개정 (Gate 1 필수).** (A) §5.4.1 Resolved BOM 응답 DTO 및 §6.1 `ResolvedBomNodeDto` 에 v1.3 §3 MBOM 절단 속성을 반영 — `itemCategory` (enum: PROFILE/GLASS/HARDWARE/CONSUMABLE/SEALANT/SCREEN), `cutDirection`, `cutLength`(= `cutLengthEvaluated`), `cutLength2`(= `cutLengthEvaluated2`, 2차원 자재), `cutQty`(= `cutQtyEvaluated`), `actualCutLength`(lossRate 반영), `supplyDivision`(공통/외창/내창), `ruleEngineVersion`(현재 `UNIQUE_V1`) 8개 필드 추가. 산식 원문(`cutLengthFormula`/`cutLengthFormula2`/`cutQtyFormula`)은 평시 응답에서 **숨김** — MES 는 평가 결과값만 필요하며, 산식 누설은 RuleEngine 내부 구현 세부 노출을 야기. 단 `?debug=true` 로 노출 가능. (B) §5.4.1 에 쿼리 파라미터 `?supplyDivision=공통|외창|내창` 추가(V4 BR6 대응, 창별 분리 수신) 및 `?debug=true` 추가. (C) §5.4 운영 시나리오 및 §5.4.1 에 **v1.3 §4.2 frozen 불변성 계약** 명문화 — `cutLength*`, `cutQty*`, `actualQty`, `actualCutLength` snapshot 은 산식 상수 사후 변경·RuleEngine 언어 업그레이드에도 재평가 금지. 규정 변경 시 DEPRECATED 후 신규 `standardBomVersion` 발급 절차 기술. (D) §5.4.1 에 v1.3 §4.1 `optionsHash` 산출 규칙 명세 — NUMERIC 옵션(OPT-DIM-W/H 등)은 해시 계산에서 **제외**, ENUM 옵션만 정규화·정렬·SHA-256 앞 8자. 동일 `resolvedBomId` 가 서로 다른 W/H 수치의 다중 견적을 공유할 수 있음을 명시. (E) §7.2 에 `OPTION_ENABLEMENT_VIOLATION`(422, v1.3 §11.2 enablement_condition 위반), `FORMULA_EVALUATION_ERROR`(500, RuleEngine 평가 실패 — 실패 산식 원문은 서버 로그에만 기록, 응답에는 미노출) 2종 신설. (F) v1.3 §7 금지어 전수 검토 완료 — 본문에 `CuttingBOM`/`cuttingBomId`/`cuttingBomKey`/`ProductSeries`/`LayoutType`/`formula_kind`/`산식구분`/`productVersion`/`configVersion` 잔존 없음(변경이력 역사적 기록은 제외). (G) 프런트매터 신설, v1.3 및 V3·V4 리포트 wikilink. |
+| **v1.8** | **2026.04.16** | **김진호** | **용어사전 BOM v1.4 정합 개정 (Gate 1 필수).** (A) §5.4.1 Resolved BOM 응답 DTO 및 §6.1 `ResolvedBomNodeDto` 에 v1.4 §3 MBOM 절단 속성을 반영 — `itemCategory` (enum: PROFILE/GLASS/HARDWARE/CONSUMABLE/SEALANT/SCREEN), `cutDirection`, `cutLength`(= `cutLengthEvaluated`), `cutLength2`(= `cutLengthEvaluated2`, 2차원 자재), `cutQty`(= `cutQtyEvaluated`), `actualCutLength`(lossRate 반영), `supplyDivision`(공통/외창/내창), `ruleEngineVersion`(현재 `UNIQUE_V1`) 8개 필드 추가. 산식 원문(`cutLengthFormula`/`cutLengthFormula2`/`cutQtyFormula`)은 평시 응답에서 **숨김** — MES 는 평가 결과값만 필요하며, 산식 누설은 RuleEngine 내부 구현 세부 노출을 야기. 단 `?debug=true` 로 노출 가능. (B) §5.4.1 에 쿼리 파라미터 `?supplyDivision=공통|외창|내창` 추가(V4 BR6 대응, 창별 분리 수신) 및 `?debug=true` 추가. (C) §5.4 운영 시나리오 및 §5.4.1 에 **v1.4 §4.2 frozen 불변성 계약** 명문화 — `cutLength*`, `cutQty*`, `actualQty`, `actualCutLength` snapshot 은 산식 상수 사후 변경·RuleEngine 언어 업그레이드에도 재평가 금지. 규정 변경 시 DEPRECATED 후 신규 `standardBomVersion` 발급 절차 기술. (D) §5.4.1 에 v1.4 §4.1 `optionsHash` 산출 규칙 명세 — NUMERIC 옵션(OPT-DIM-W/H 등)은 해시 계산에서 **제외**, ENUM 옵션만 정규화·정렬·SHA-256 앞 8자. 동일 `resolvedBomId` 가 서로 다른 W/H 수치의 다중 견적을 공유할 수 있음을 명시. (E) §7.2 에 `OPTION_ENABLEMENT_VIOLATION`(422, v1.4 §11 enablement_condition 위반), `FORMULA_EVALUATION_ERROR`(500, RuleEngine 평가 실패 — 실패 산식 원문은 서버 로그에만 기록, 응답에는 미노출) 2종 신설. (F) v1.4 §7 금지어 전수 검토 완료 — 본문에 `CuttingBOM`/`cuttingBomId`/`cuttingBomKey`/`ProductSeries`/`LayoutType`/`formula_kind`/`산식구분`/`productVersion`/`configVersion` 잔존 없음(변경이력 역사적 기록은 제외). (G) 프런트매터 신설, v1.4 및 V3·V4 리포트 wikilink. (H) **MES팀 요청 반영** — Resolved BOM 트리 노드에 `nodeId`(int, DFS pre-order 순서, 1부터 순차) 및 `parentNodeId`(int?, 루트는 null) 2필드 신설. §5.4.1 응답 DTO / §6.1 DTO 요약 / 부록 A OpenAPI 스키마 3곳 동기 반영. MES 측에서 트리를 flat 테이블로 저장·조회할 때 부모-자식 관계 복원용. frozen snapshot 이므로 같은 `resolvedBomId` 재조회 시 동일 nodeId 할당 보장. |
 | v1.7 | 2026.04.14 | 김진호 | BOM API 를 단일 표준BOM 버전축 기반으로 통일, productVersion/configVersion 분리 축 제거 — §5.1 다이어그램을 3-레이어(표준BOM 마스터·버전·Resolved 스냅샷) 단일 축으로 재설계, 묶음 스냅샷 원칙 명시. §5.2 BOM 엔드포인트를 `{standardBomId}/{standardBomVersion}` 단일 파라미터 구조로 리팩토링. 요청/응답 스키마의 *구명칭* 필드를 standardBomVersion 으로 교체. resolvedBomId 생성 규칙을 3키(standardBomId, standardBomVersion, 옵션선택값 해시) 기반으로 변경. §5.4 MES 연동 엔드포인트(`/bom/resolved/{resolvedBomId}`) 유지하되 상위 키가 standardBomVersion 기반임을 명시. §6.1 DTO 목록 정합 반영. 문서정비: (1) `location_code`→`locationCode` 일괄 정정. (2) §5.4.1 응답 `appliedOptionsHash` 중복 제거. (3) §7.1 HTTP 410, §7.2 `RESOLVED_BOM_NOT_FOUND`·`RESOLVED_BOM_DEPRECATED` 등재. (4) §9.2 캐싱 전략을 Resolved 스냅샷(영구)과 표준BOM 마스터(TTL 5분) 로 분리. (5) §4.2 Content-Type 필수 플래그 해제. (6) 부록 OpenAPI paths 정합. |
 | v1.6 | 2026.04.14 | 김진호 | 외부/내부 API path prefix 분리 정책 도입. 본 문서를 외부 API 전용 명세서로 한정. |
 | v1.5 | 2026.04.14 | 김진호 | §5.4.6 "Resolved BOM 최신 RELEASED 조회" 절 삭제. §5.1 BOM API 매핑 정합. 식별자 vs 버전 축 분리 반영. |
@@ -102,7 +102,7 @@ related:
 
 | 문서코드 | 문서명 | 용도 |
 |---------|--------|------|
-| [[WIMS_용어사전_BOM_v1.3\|WIMS 용어사전 BOM v1.3]] | 용어·스키마·산식 언어 표준 | **기준 문서 (v1.8 반영 대상)** |
+| [[WIMS_용어사전_BOM_v1.4\|WIMS 용어사전 BOM v1.4]] | 용어·스키마·산식 언어 표준 | **기준 문서 (v1.8 반영 대상)** |
 | [[V3_기존설계문서_영향도\|V3 리포트]] | 기존 설계 문서 영향도 분석 | D24-1/D24-3 지적 수용 근거 |
 | [[V4_비즈니스규칙_수용성\|V4 리포트]] | 비즈니스 규칙 수용성 검증 | BR6 supplyDivision 필터 근거 |
 | [[AN12-1_요구사항정의서_Phase1_v1.1#FR-PM-013\|FR-PM-013]] | MES 연동 BOM 데이터 인터페이스 | 핵심 기능 요구사항 |
@@ -187,7 +187,7 @@ sequenceDiagram
 | 3 | **Resolved MBOM 기준** | MES는 Resolved MBOM만 조회. Base BOM, EBOM에는 접근 불가 |
 | 4 | **Released 버전만 노출** | Released 상태의 최신 MBOM만 API에 노출. Draft/Under Review 미노출 |
 | 5 | **하위 호환성 보장** | API 변경 시 기존 v1 엔드포인트 최소 3개월 병행 운영 |
-| 6 | **Snapshot 불변성 (v1.8 신규)** | `frozen=TRUE` 된 Resolved BOM 의 `cutLength*`, `cutQty*`, `actualQty`, `actualCutLength` 는 산식 상수·RuleEngine 언어 업그레이드에도 **재평가 금지**. 규정 변경 시 DEPRECATED 후 신규 `standardBomVersion` (용어사전 v1.3 §4.2) |
+| 6 | **Snapshot 불변성 (v1.8 신규)** | `frozen=TRUE` 된 Resolved BOM 의 `cutLength*`, `cutQty*`, `actualQty`, `actualCutLength` 는 산식 상수·RuleEngine 언어 업그레이드에도 **재평가 금지**. 규정 변경 시 DEPRECATED 후 신규 `standardBomVersion` (용어사전 v1.4 §4.2) |
 
 ---
 
@@ -385,7 +385,7 @@ RBOM-{standardBomId}-sbv{standardBomVersion}-{optionsHash}
 예: RBOM-DHS-AE225-D-1-sbv1-a3f9c2b1
 ```
 
-- `optionsHash`: 적용 ENUM 옵션 키-값 쌍의 정규화(키 정렬) 후 SHA-256 앞 8자. 무옵션은 `default`. **NUMERIC 옵션(OPT-DIM-W/H/W1/H1/H2/H3)은 해시 계산에서 제외** (용어사전 v1.3 §4.1). → 동일 `resolvedBomId` 가 서로 다른 W/H 수치의 다중 견적/작업지시를 공유 가능. MES 는 치수를 `appliedOptions` JSON 에서 직접 판독하여 작업지시에 전달.
+- `optionsHash`: 적용 ENUM 옵션 키-값 쌍의 정규화(키 정렬) 후 SHA-256 앞 8자. 무옵션은 `default`. **NUMERIC 옵션(OPT-DIM-W/H/W1/H1/H2/H3)은 해시 계산에서 제외** (용어사전 v1.4 §4.1). → 동일 `resolvedBomId` 가 서로 다른 W/H 수치의 다중 견적/작업지시를 공유 가능. MES 는 치수를 `appliedOptions` JSON 에서 직접 판독하여 작업지시에 전달.
 
 ### 5.2 엔드포인트 목록
 
@@ -555,7 +555,7 @@ Released 상태 표준BOM 목록.
 > - `resolvedBomId` = `RBOM-{standardBomId}-sbv{standardBomVersion}-{optionsHash}` — ENUM 옵션만의 결정적 해시
 > - NUMERIC 옵션(W/H 등)은 해시에서 제외되어, 동일 `resolvedBomId` 스냅샷 아래 W/H 수치만 다른 다수 견적이 공존 가능
 >
-> **불변 스냅샷 원칙 (용어사전 v1.3 §4.2):**
+> **불변 스냅샷 원칙 (용어사전 v1.4 §4.2):**
 > - `frozen=TRUE` 전환 시점에 각 행의 `cutLength*`, `cutQty*`, `actualQty`, `actualCutLength` 필드가 고정됨
 > - **산식 상수 사후 변경·RuleEngine 언어 업그레이드(예: UNIQUE_V1→V2)에도 재평가 금지**. MES 작업지시·금액 산출의 안정성 보장
 > - 규정 변경·데이터 오류 정정 시: 기존 스냅샷 `DEPRECATED` 처리 + 신규 `standardBomVersion` 발급 → 신규 `resolvedBomId` 생성. 기존 스냅샷은 감사용으로 보존(삭제 금지)
@@ -586,23 +586,25 @@ Released 상태 표준BOM 목록.
 
 | 필드 | 타입 | 필수 | 설명 |
 |------|------|:---:|------|
+| **nodeId** | int | ✓ | **v1.8 신규 (MES 요청).** 트리 노드 고유 식별자. 루트부터 DFS pre-order 순회 순서로 1부터 순차 부여. `ResolvedBomDto` 범위 내 유일. frozen snapshot 이므로 재조회 시에도 동일값 보장. |
+| **parentNodeId** | int? | | **v1.8 신규 (MES 요청).** 부모 노드의 `nodeId`. 루트(level=0)는 null. MES 가 트리를 flat 테이블로 저장·조회할 때 부모-자식 관계 복원 키. |
 | level | int | ✓ | 0(완제품)~3(원자재) |
 | itemCode | string | ✓ | 품목코드 |
 | itemName | string | ✓ | 품목명 |
 | itemType | enum | ✓ | `PRODUCT` \| `ASSEMBLY` \| `SEMI` \| `RAW` \| `SUB` |
-| **itemCategory** | enum | ✓ | **v1.8 신규.** `PROFILE` \| `GLASS` \| `HARDWARE` \| `CONSUMABLE` \| `SEALANT` \| `SCREEN`. Resolved 로직 분기 키 (용어사전 v1.3 §1) |
+| **itemCategory** | enum | ✓ | **v1.8 신규.** `PROFILE` \| `GLASS` \| `HARDWARE` \| `CONSUMABLE` \| `SEALANT` \| `SCREEN`. Resolved 로직 분기 키 (용어사전 v1.4 §1) |
 | category | string | | 자재 분류 표시용 (프레임/원자재/부자재/공정) |
 | qty | decimal | ✓ | 이론 소요량 (`theoreticalQty`) |
 | unit | string | ✓ | EA, SET, M, M2, KG 등 |
 | lossRate | decimal | | 손실률 0.0~1.0 |
 | actualQty | decimal | | 개수 기반 자재: `theoreticalQty × (1 + lossRate)` |
-| **cutDirection** | enum? | | **v1.8 신규.** `W` \| `H` \| `W1` \| `H1` \| `H2` \| `H3`. 절단 대상이 아니면 null (용어사전 v1.3 §3) |
+| **cutDirection** | enum? | | **v1.8 신규.** `W` \| `H` \| `W1` \| `H1` \| `H2` \| `H3`. 절단 대상이 아니면 null (용어사전 v1.4 §3) |
 | **cutLength** | decimal? | | **v1.8 신규.** 1차 절단 길이 평가 결과 (mm). `cutLengthEvaluated` snapshot. frozen 이후 불변 |
 | **cutLength2** | decimal? | | **v1.8 신규.** 2차 절단 길이 (`itemCategory=GLASS` 세로 치수 등) |
 | **cutQty** | decimal? | | **v1.8 신규.** 절단 개수 평가 결과. `cutQtyEvaluated` snapshot |
-| **actualCutLength** | decimal? | | **v1.8 신규.** `cutLength × (1 + lossRate)`. 길이 기반 자재(PROFILE/SEALANT/GLASS)에 적용 (용어사전 v1.3 §3.1) |
-| **supplyDivision** | enum? | | **v1.8 신규.** `공통` \| `외창` \| `내창`. null 이면 공통 (용어사전 v1.3 §3) |
-| **ruleEngineVersion** | string | ✓ | **v1.8 신규.** 이 Resolved 를 생성한 RuleEngine 버전. 현재 고정값 `UNIQUE_V1` (용어사전 v1.3 §4) |
+| **actualCutLength** | decimal? | | **v1.8 신규.** `cutLength × (1 + lossRate)`. 길이 기반 자재(PROFILE/SEALANT/GLASS)에 적용 (용어사전 v1.4 §3.1) |
+| **supplyDivision** | enum? | | **v1.8 신규.** `공통` \| `외창` \| `내창`. null 이면 공통 (용어사전 v1.4 §3) |
+| **ruleEngineVersion** | string | ✓ | **v1.8 신규.** 이 Resolved 를 생성한 RuleEngine 버전. 현재 고정값 `UNIQUE_V1` (용어사전 v1.4 §4) |
 | cutLengthFormula | string? | | **`?debug=true` 에서만 노출.** 1차 절단 산식 원문 |
 | cutLengthFormula2 | string? | | **`?debug=true` 에서만 노출.** 2차 절단 산식 원문 |
 | cutQtyFormula | string? | | **`?debug=true` 에서만 노출.** 수량 산식 원문 |
@@ -644,6 +646,8 @@ Released 상태 표준BOM 목록.
     "optionsHashRule": "ENUM 옵션만 정규화 후 SHA-256 앞 8자. NUMERIC(OPT-DIM-*) 제외",
     "tree": [
       {
+        "nodeId": 1,
+        "parentNodeId": null,
         "level": 0,
         "itemCode": "DHS-AE225-D-1",
         "itemName": "225mm 단열 중중연 이중창",
@@ -654,6 +658,8 @@ Released 상태 표준BOM 목록.
         "ruleEngineVersion": "UNIQUE_V1",
         "children": [
           {
+            "nodeId": 2,
+            "parentNodeId": 1,
             "level": 1,
             "itemCode": "HF-0007",
             "itemName": "조립후 가공품",
@@ -666,6 +672,8 @@ Released 상태 표준BOM 목록.
             "ruleEngineVersion": "UNIQUE_V1",
             "children": [
               {
+                "nodeId": 3,
+                "parentNodeId": 2,
                 "level": 2,
                 "itemCode": "UNI-A225-101-HC",
                 "itemName": "225-H-프레임-1",
@@ -689,6 +697,8 @@ Released 상태 표준BOM 목록.
                 "ruleEngineVersion": "UNIQUE_V1",
                 "children": [
                   {
+                    "nodeId": 4,
+                    "parentNodeId": 3,
                     "level": 3,
                     "itemCode": "UNI-A225-101A",
                     "itemName": "19년 225mm 1등급 미서기 후렘-외부 A",
@@ -711,6 +721,8 @@ Released 상태 표준BOM 목록.
                 ]
               },
               {
+                "nodeId": 5,
+                "parentNodeId": 2,
                 "level": 2,
                 "itemCode": "02-0094-1",
                 "itemName": "후레임연결재-1(19년형)",
@@ -759,9 +771,9 @@ Released 상태 표준BOM 목록.
 }
 ```
 
-> **frozen 불변성 계약 (용어사전 v1.3 §4.2):** 본 응답의 `cutLength`, `cutLength2`, `cutQty`, `actualQty`, `actualCutLength` 는 `frozenAt` 시점에 RuleEngine (`UNIQUE_V1`) 이 평가한 snapshot 값이다. **산식 상수가 사후 변경되거나 RuleEngine 이 `UNIQUE_V2` 로 업그레이드되어도 본 스냅샷은 재평가하지 않는다.** MES 는 이 값을 신뢰하여 작업지시를 발행한다. 규정 변경이 필요하면 WIMS 가 기존 스냅샷을 `DEPRECATED` 처리하고 신규 `standardBomVersion` 을 발급한다 (HTTP 410 응답).
+> **frozen 불변성 계약 (용어사전 v1.4 §4.2):** 본 응답의 `cutLength`, `cutLength2`, `cutQty`, `actualQty`, `actualCutLength` 는 `frozenAt` 시점에 RuleEngine (`UNIQUE_V1`) 이 평가한 snapshot 값이다. **산식 상수가 사후 변경되거나 RuleEngine 이 `UNIQUE_V2` 로 업그레이드되어도 본 스냅샷은 재평가하지 않는다.** MES 는 이 값을 신뢰하여 작업지시를 발행한다. 규정 변경이 필요하면 WIMS 가 기존 스냅샷을 `DEPRECATED` 처리하고 신규 `standardBomVersion` 을 발급한다 (HTTP 410 응답).
 
-> **optionsHash 산출 규칙 (용어사전 v1.3 §4.1):**
+> **optionsHash 산출 규칙 (용어사전 v1.4 §4.1):**
 > - 해시 입력: `appliedOptions` 중 **ENUM 값만** (키 사전순 정렬 → JSON canonical → SHA-256 앞 8자)
 > - NUMERIC 값 (`OPT-DIM-W`, `OPT-DIM-H`, `OPT-DIM-W1`, `OPT-DIM-H1/H2/H3`) 은 해시 계산에서 **제외**
 > - 동일 `resolvedBomId` 가 W/H 수치만 다른 여러 주문·견적에 공유될 수 있음 — 치수별 작업지시는 MES 가 `appliedOptions` JSON 에서 NUMERIC 값을 판독하여 처리
@@ -775,7 +787,7 @@ Released 상태 표준BOM 목록.
 | 400 | INVALID_PARAMETER | `?supplyDivision` enum 외 값 |
 | 404 | RESOLVED_BOM_NOT_FOUND | 존재하지 않는 resolvedBomId |
 | 410 | RESOLVED_BOM_DEPRECATED | DEPRECATED 스냅샷 |
-| 422 | OPTION_ENABLEMENT_VIOLATION | `enablement_condition` 위반 (v1.3 §11.2 — 예: 3편창 아닌데 `OPT-DIM-W1` 주입) |
+| 422 | OPTION_ENABLEMENT_VIOLATION | `enablement_condition` 위반 (v1.4 §11 — 예: 3편창 아닌데 `OPT-DIM-W1` 주입) |
 | 500 | FORMULA_EVALUATION_ERROR | RuleEngine 산식 평가 실패 (실패 산식 원문은 서버 로그에만 기록, 응답 본문에는 미포함) |
 
 ---
@@ -896,7 +908,7 @@ Released 상태 표준BOM 목록.
 | StandardBomVersionSummaryDto | standardBomVersion 이력 항목 | GET /bom/standard/{standardBomId}/versions |
 | StandardBomVersionDetailDto | 특정 버전 상세 (MBOM·Config 묶음, ruleEngineVersion) | GET /bom/standard/{standardBomId}/versions/{standardBomVersion} |
 | **ResolvedBomDto** | Resolved BOM 스냅샷 (resolvedBomId, 3키, immutable, frozenAt, ruleEngineVersion, appliedOptions, optionsHashRule, tree) | GET /bom/resolved/{resolvedBomId} |
-| **ResolvedBomNodeDto** | **v1.8 확장.** Resolved BOM 트리 노드. level/itemCode/itemType/**itemCategory**/qty/**cutDirection/cutLength/cutLength2/cutQty/actualCutLength/supplyDivision/ruleEngineVersion**, processCode, locationCode | GET /bom/resolved/{resolvedBomId} (tree 원소) |
+| **ResolvedBomNodeDto** | **v1.8 확장.** Resolved BOM 트리 노드. **nodeId/parentNodeId**, level/itemCode/itemType/**itemCategory**/qty/**cutDirection/cutLength/cutLength2/cutQty/actualCutLength/supplyDivision/ruleEngineVersion**, processCode, locationCode | GET /bom/resolved/{resolvedBomId} (tree 원소) |
 | MaterialDto | 자재 마스터 (itemCategory 포함) | GET /materials |
 | MaterialDetailDto | 자재 상세 | GET /materials/{code} |
 | ProcessDto | 공정 마스터 | GET /processes |
@@ -962,7 +974,7 @@ Released 상태 표준BOM 목록.
 | BOM_NOT_RELEASED | 404 | Released 상태 없음 |
 | RESOLVED_BOM_NOT_FOUND | 404 | 존재하지 않는 resolvedBomId |
 | RESOLVED_BOM_DEPRECATED | 410 | DEPRECATED 스냅샷 |
-| **OPTION_ENABLEMENT_VIOLATION** | **422** | **v1.8 신규.** 옵션 `enablement_condition` 위반. 예: `OPT-LAY != 'W1XH1-3편'` 인데 `OPT-DIM-W1=500` 주입. `details` 에 위반 옵션 키·규칙 식별자 포함 (용어사전 v1.3 §11.2) |
+| **OPTION_ENABLEMENT_VIOLATION** | **422** | **v1.8 신규.** 옵션 `enablement_condition` 위반. 예: `OPT-LAY != 'W1XH1-3편'` 인데 `OPT-DIM-W1=500` 주입. `details` 에 위반 옵션 키·규칙 식별자 포함 (용어사전 v1.4 §11) |
 | MATERIAL_NOT_FOUND | 404 | 자재 코드 조회 실패 |
 | PROCESS_NOT_FOUND | 404 | 공정 코드 조회 실패 |
 | INVALID_PARAMETER | 400 | 잘못된 요청 파라미터 (`?supplyDivision` enum 외 값 등) |
@@ -1170,8 +1182,15 @@ components:
       nullable: true
     ResolvedBomNodeDto:
       type: object
-      required: [level, itemCode, itemName, itemType, itemCategory, ruleEngineVersion]
+      required: [nodeId, level, itemCode, itemName, itemType, itemCategory, ruleEngineVersion]
       properties:
+        nodeId:
+          type: integer
+          description: "트리 노드 고유 식별자. DFS pre-order 순서로 1부터 순차 부여. ResolvedBomDto 범위 내 유일."
+        parentNodeId:
+          type: integer
+          nullable: true
+          description: "부모 노드의 nodeId. 루트(level=0)는 null."
         level: { type: integer }
         itemCode: { type: string }
         itemName: { type: string }
@@ -1214,7 +1233,7 @@ components:
 
 ---
 
-## 부록 B: v1.3 §7 금지어 검증 결과 (v1.8 자체 점검)
+## 부록 B: v1.4 §7 금지어 검증 결과 (v1.8 자체 점검)
 
 | 금지어 | v1.8 본문 등장 | 결과 |
 |--------|:-------------:|------|
@@ -1227,4 +1246,4 @@ components:
 | `계산식`, `공식` (BOM 문맥) | ❌ | 본문 미등장. `산식` 으로 통일 |
 
 > [!success] 금지어 전수 검증 통과
-> v1.3 §7 기준 전 항목 clean. 변경이력 테이블에 남은 v1.7 의 `productVersion`/`configVersion` 언급은 v1.7 의 역사적 변경 설명이며 이탤릭(*구명칭*) 처리로 무해화.
+> v1.4 §7 기준 전 항목 clean. 변경이력 테이블에 남은 v1.7 의 `productVersion`/`configVersion` 언급은 v1.7 의 역사적 변경 설명이며 이탤릭(*구명칭*) 처리로 무해화.
