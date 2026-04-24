@@ -1020,7 +1020,7 @@ v1.3 이전의 단일 "옵션 구성 화면" 을 **3뷰 체계**로 재구성하
 | 산출물 | 형식 | 설명 |
 |--------|------|------|
 | [[WIMS_용어사전_BOM_v1.4]] | Markdown | **BOM 도메인 용어사전 v1.4 (최신)** — 엔티티·BOM_RULE 스키마·금지어·RULE_TEMPLATE/BOM_RULE_HISTORY 정식 정의. 본 부록 D 의 전제 문서 |
-| [[DE35-1_미서기이중창_표준BOM구조_정의서_v1.5]] | Markdown | **DE35-1 v1.5-r2 (최신)** — 표준 BOM 3-튜플·BOM_RULE 확장·템플릿 컴파일 반영. 본 부록 D 의 본문 |
+| [[DE35-1_미서기이중창_표준BOM구조_정의서_v1.6]] | Markdown | **DE35-1 v1.5-r2 (최신)** — 표준 BOM 3-튜플·BOM_RULE 확장·템플릿 컴파일 반영. 본 부록 D 의 본문 |
 | [[DE32-1_BOM도메인_ER다이어그램_v1.2]] | Markdown | DE32-1 v1.1 — BOM 도메인 통합 ER 다이어그램(엔티티 19 + BOM_RULE 5컬럼 + RULE_TEMPLATE·BOM_RULE_HISTORY) |
 | [[DE24-1_인터페이스설계서_MES_REST_API_v1.8]] | Markdown | DE24-1 v1.8 — MES REST API 응답 DTO 8 신규 필드·쿼리·에러 스펙 |
 | [[DE11-1_소프트웨어_아키텍처_설계서_v1.2]] | Markdown | DE11-1 v1.3 — RuleEngine §11, 템플릿 컴파일러 §11.7, 시뮬레이터 §11.8, 결정표 §11.9 |
