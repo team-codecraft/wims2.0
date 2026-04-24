@@ -17,7 +17,7 @@ tags:
   - numeric-option
   - enablement-condition
 related:
-  - "[[WIMS_용어사전_BOM_v1.3]]"
+  - "[[WIMS_용어사전_BOM_v1.4]]"
   - "[[V3_기존설계문서_영향도]]"
   - "[[V4_비즈니스규칙_수용성]]"
   - "[[DE22-1_화면설계서_Phase1_v1.4]]"
@@ -77,7 +77,7 @@ v1.4의 §1~§7, §8.3, §9.0~§9.2, §10~§11 섹션은 변경 없이 유효하
 
 | 문서코드 | 문서명 | 용도 |
 |---------|--------|------|
-| [[WIMS_용어사전_BOM_v1.3\|용어사전 v1.3]] | BOM 도메인 용어사전 | NUMERIC 옵션·enablement_condition·action 동사·itemCategory·파생제품 기준 |
+| [[WIMS_용어사전_BOM_v1.4\|용어사전 v1.3]] | BOM 도메인 용어사전 | NUMERIC 옵션·enablement_condition·action 동사·itemCategory·파생제품 기준 |
 | [[V3_기존설계문서_영향도]] | v1.3 검증 — 설계문서 영향도 | DE22-1 개정 대상 식별 |
 | [[V4_비즈니스규칙_수용성]] | v1.3 검증 — BR5 3편창 W1 조건부 활성화 | 조건부 활성화 UX 근거 |
 | [[DE35-1_미서기이중창_표준BOM구조_정의서_v1.4]] | 표준 BOM 구조 정의서 | 파생제품(§16) · supplyDivision |

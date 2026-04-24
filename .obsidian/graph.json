@@ -1,5 +1,5 @@
 {
-  "collapse-filter": true,
+  "collapse-filter": false,
   "search": "",
   "showTags": false,
   "showAttachments": false,
@@ -8,37 +8,86 @@
   "collapse-color-groups": true,
   "colorGroups": [
     {
-      "query": "file:PP",
+      "query": "file:STATUS OR file:CLAUDE",
       "color": {
         "a": 1,
-        "rgb": 14048348
+        "rgb": 15158332
       }
     },
     {
-      "query": "file:AN",
+      "query": "path:WIMS_용어사전",
       "color": {
         "a": 1,
-        "rgb": 14069084
+        "rgb": 10181046
       }
     },
     {
-      "query": "file:DE",
+      "query": "path:\"참고자료/분석/검증\"",
       "color": {
         "a": 1,
-        "rgb": 11392604
+        "rgb": 1482885
+      }
+    },
+    {
+      "query": "path:회의록",
+      "color": {
+        "a": 1,
+        "rgb": 15277667
+      }
+    },
+    {
+      "query": "path:superpowers",
+      "color": {
+        "a": 1,
+        "rgb": 9323693
+      }
+    },
+    {
+      "query": "path:\"1_PP\"",
+      "color": {
+        "a": 1,
+        "rgb": 15105570
+      }
+    },
+    {
+      "query": "path:\"2_AN\"",
+      "color": {
+        "a": 1,
+        "rgb": 15844367
+      }
+    },
+    {
+      "query": "path:\"3_DE\"",
+      "color": {
+        "a": 1,
+        "rgb": 2600544
+      }
+    },
+    {
+      "query": "path:\"4_CO\"",
+      "color": {
+        "a": 1,
+        "rgb": 3447003
+      }
+    },
+    {
+      "query": "path:참고자료",
+      "color": {
+        "a": 1,
+        "rgb": 9807270
       }
     }
   ],
   "collapse-display": true,
   "showArrow": false,
-  "textFadeMultiplier": 0,
-  "nodeSizeMultiplier": 1,
-  "lineSizeMultiplier": 1,
+  "textFadeMultiplier": -0.4,
+  "nodeSizeMultiplier": 1.71674479166667,
+  "lineSizeMultiplier": 0.973663194444444,
   "collapse-forces": true,
   "centerStrength": 0.558159722222222,
   "repelStrength": 14.9079861111111,
   "linkStrength": 1,
   "linkDistance": 273,
-  "scale": 0.3106491739083677,
-  "close": false
+  "scale": 0.2427437296865769,
+  "close": true
 }

@@ -81,7 +81,7 @@ flowchart TD
     Start --> A1[계약 확정<br/>견적설계 데이터 자동 연계 FR-OM-001]
     A1 --> A2[색상/납품옵션 사양 확정<br/>FR-OM-002]
     A2 --> A3[계약 이력/상태 관리<br/>계약→진행→완공 추적 FR-OM-003]
-    A3 --> A4[발주 대상 BOM 자동 집계<br/>4키 productCode/productVersion/<br/>configCode/configVersion 확정<br/>resolvedBomId 캡처 → 주문 엔티티 불변 바인딩<br/>DE35-1 §6.2 · DE24-1 §5.4]
+    A3 --> A4[발주 대상 BOM 자동 집계<br/>standardBomId + standardBomVersion 고정<br/>resolvedBomId 캡처 → 주문 엔티티 불변 바인딩<br/>DE35-1 §6.2 · DE24-1 §5.4]
 
     A4 --> B1[절단 최적화 자동 수행<br/>정척 기준 최적 조합 FR-OM-004]
     B1 --> B2{로스율<br/>허용 범위?}
@@ -123,4 +123,4 @@ flowchart TD
 | 6 | 부품 거래처 비활성 | 거래처 통합 등록·관리 | [[AN12-1_요구사항정의서_Phase2_v1.0#FR-OM-009 거래처 등록·수정·삭제·조회\|FR-OM-009]] |
 | 7 | 재고 수동 확인 | 발주 현황 + 재고 현황 통합 관리 | [[AN12-1_요구사항정의서_Phase2_v1.0#FR-OM-010 발주 현황 조회 및 재고 현황 관리\|FR-OM-010]] |
 | 8 | 추가 발주 별도 처리 (제조관리와 미연계) | 제조관리 추가 발주 요청 자동 수신 및 처리 | [[AN12-1_요구사항정의서_Phase2_v1.0#FR-MF-009 1차 발주량 대비 최종 발주량 자동 비교\|FR-MF-009]], [[AN12-1_요구사항정의서_Phase2_v1.0#FR-MF-010 추가 발주서 출력 및 처리\|FR-MF-010]] |
-| 9 | BOM 버전 추적 불가 (설계 변경 시 기존 주문과 신규 주문의 BOM 혼선) | 주문 생성 시 Resolved BOM 불변 스냅샷(`resolvedBomId`, 4키 결정적 ID) 을 주문에 바인딩, 설계 변경은 ECO 프로세스로만 반영 | [[DE35-1_미서기이중창_표준BOM구조_정의서_v1.4\|DE35-1]] §6.2, [[DE24-1_인터페이스설계서_MES_REST_API_v1.6\|DE24-1]] §5.4 |
+| 9 | BOM 버전 추적 불가 (설계 변경 시 기존 주문과 신규 주문의 BOM 혼선) | 주문 생성 시 Resolved BOM 불변 스냅샷(`resolvedBomId`, `standardBomId + standardBomVersion` 고정) 을 주문에 바인딩, 설계 변경은 ECO 프로세스로만 반영 | [[DE35-1_미서기이중창_표준BOM구조_정의서_v1.5\|DE35-1]] §6.2, [[DE24-1_인터페이스설계서_v2.0\|DE24-1]] §5.4 |
