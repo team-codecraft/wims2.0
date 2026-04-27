@@ -1,7 +1,7 @@
 ---
-title: CM 공통 기능 요구사항 상세 (AN12-1 Phase1 v1.1-r4)
+title: CM 공통 기능 요구사항 상세 (AN12-1 Phase1 v1.1-r5)
 parent: "[[AN12-1_요구사항정의서_Phase1_v1.1]]"
-version: 1.1-r4
+version: 1.1-r5
 updated: 2026-04-27
 type: 분석
 status: review
@@ -24,6 +24,7 @@ related:
 > v1.1-r2 분산 구조 재편 (2026-04-23).
 > **v1.1-r3 (2026-04-27):** 관리자 = 일반 사용자 단일 모델 확정. FR-CM-001 본문 수용기준 강화 (JWT TTL·Redis·5회 잠금) + 신규 FR-CM-007 (관리자 인증 = IF-CM-AUTH-001/002/003), FR-CM-008 (비밀번호 정책 bcrypt·10자·5회 잠금), FR-CM-009 (로그인 이력 감사 admin_login_history) 3건 추가. CM FR 6 → **9건**.
 > **v1.1-r4 (2026-04-27):** FR-CM-008 비밀번호 정책에 **전송 구간 암호화** 수용기준 추가 — 클라이언트는 IF-CM-AUTH-004 공개키로 RSA-OAEP-SHA256 암호화한 Base64 ciphertext 만 `LoginRequest.password` 로 전송. 평문 전송은 서버에서 거부 ([[DE24-1_인터페이스설계서_v2.0]] §3.2.6).
+> **v1.1-r5 (2026-04-27):** FR-CM-004 시스템 관리에 **사용자(=관리자) 등록 수용기준** 보강 — IF-CM-USR-001 (`POST /api/cm/users`) 으로 인증된 admin 만 호출 가능. password 는 IF-CM-AUTH-004 공개키로 RSA-OAEP 암호화 Base64 (평문 금지). adminId·email DB UNIQUE 동시성 보호 → 409 (`ADMIN_ID_DUPLICATE`/`EMAIL_DUPLICATE`). 첫 admin 은 DE33-1 §6.4 Flyway V109 시드로 부트스트랩 (`jinos78`, 운영 시 즉시 비번 변경).
 
 ## 1. 개요
 
@@ -167,17 +168,27 @@ WIMS 2.0 **공통(Common)** 서브시스템은 전 서브시스템(PM/ES/OM/MF/F
 
 ---
 
-#### FR-CM-004 시스템 관리 (사용자, 코드, 설정) `v1.0 계승`
+#### FR-CM-004 시스템 관리 (사용자, 코드, 설정) `v1.0 계승 / v1.1-r5 사용자 등록 수용기준 강화`
 
 | 항목 | 내용 |
 |------|------|
 | **분류** | 기능 > 공통 > 시스템관리 |
 | **난이도** | 중 / **우선순위** 상 / **수용여부** 수용 |
 | **출처** | 사이트맵 |
-| **관련 요구사항** | FR-CM-002 |
+| **관련 요구사항** | FR-CM-002, FR-CM-007, FR-CM-008, NFR-SC-CM-004 |
 | **관련 화면** | SCR-CM-003 (사용자 관리), SCR-CM-005 (그룹), SCR-CM-006 (코드), SCR-CM-007 (시스템 설정) |
+| **관련 인터페이스** | IF-CM-USR-001 (DE24-1 §5.2.3), IF-CM-AUTH-004 (DE24-1 §5.2.1 공개키 발급) |
 
 **개요:** 사용자·그룹·코드(CODE_CATALOG)·시스템 설정 관리. SCR-CM-006 코드관리는 제품 분류 L1~L4 값 및 modelCode 세그먼트 값의 공급처 역할(FR-PM-014/015 연계). SCR-CM-007 v1.6: 비밀번호·계정잠금·세션·알림·파일 5 카테고리 12항목 설정 표.
+
+**사용자 등록 수용기준 (v1.1-r5, IF-CM-USR-001 = `POST /api/cm/users`):**
+
+- WIMS 2.0 단일 사용자 모델 (사용자 = 관리자) 의 신규 등록은 **인증된 admin** 만 호출 가능 (Phase 1 모든 admin). 첫 admin 은 **DE33-1 §6.4 / Flyway V109** 시드 마이그레이션으로 부트스트랩 (`adminId='jinos78'`, 운영 시 즉시 비밀번호 변경).
+- Request 의 `password` 필드는 **IF-CM-AUTH-004 공개키로 RSA-OAEP-SHA256 암호화한 Base64 ciphertext** (평문 전송 금지) — 로그인 흐름과 동일 일관성 (FR-CM-008·NFR-SC-CM-004).
+- 서버는 복호화 → 평문 길이 **10자 정책 (DEC-03)** 검증 → bcrypt(cost=10) 해시 → INSERT.
+- `admin_id` 와 `email` 은 DB UNIQUE (`uq_admin_admin_id` · `uq_admin_email`) 동시성 보호 — 위반 시 409 (`ADMIN_ID_DUPLICATE` / `EMAIL_DUPLICATE`).
+- 응답 (201 Created) 에 비밀번호 해시·감사 컬럼은 노출하지 않는다.
+- 등록 직후 신규 admin 은 `status='JOINED'` 로 즉시 IF-CM-AUTH-001 로그인 가능.
 
 ---
 

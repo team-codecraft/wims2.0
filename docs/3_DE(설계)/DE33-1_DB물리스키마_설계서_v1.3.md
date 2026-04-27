@@ -1,7 +1,7 @@
 ---
-title: DE33-1 DB 물리 스키마 설계서 v1.3
+title: DE33-1 DB 물리 스키마 설계서 v1.3 (r1)
 docCode: DE33-1
-version: v1.3
+version: v1.3-r1
 created: 2026-04-21
 updated: 2026-04-27
 type: 설계
@@ -1275,6 +1275,39 @@ INSERT INTO rule_template (
 | TPL-ADD-BY-OPT | ADD | 4 | 1 rule | productClass, optionGroup, optionValue, item, qty |
 | TPL-DERIVATIVE-DIFF | REPLACE / SET | 가변 | 가변 | derivativeOf, diffItems[] |
 
+### 6.4 admin 부트스트랩 시드 *(v1.3-r1, Flyway V109)*
+
+WIMS 2.0 단일 사용자 모델 (사용자 = 관리자, §3.21) 의 초기 진입을 위한 부트스트랩 계정 1건. IF-CM-USR-001 (DE24-1 §5.2.3) 로 신규 admin 을 등록하려면 인증된 admin 이 필요하므로, 첫 admin 은 본 시드로 주입한다.
+
+| 컬럼 | 값 | 비고 |
+|------|----|------|
+| `admin_id` | `'jinos78'` | 로그인 ID. 이후 신규 admin 은 IF-CM-USR-001 로 생성. |
+| `password` | `'$2a$10$qsyZ2JFv1T9GVWmi9h7qzejOLOf9sLtdDQ3YsAfwAJkFx9m1xuot.'` | 평문 `'rhatoRl121!'` (10자, DEC-03/NFR-SC-CM-004 충족) 의 BCryptPasswordEncoder (cost=10, prefix `$2a$`) 해시 사전 계산값. 검증: `BCryptPasswordEncoder().matches("rhatoRl121!", <hash>) == true`. |
+| `name` | `'관리자'` | 운영 시 IF-CM-USR-001 로 표시명 변경 가능. |
+| `mobile`, `email` | `NULL` | 선택 컬럼 (UNIQUE 영향 없음). |
+| `status` | `'JOINED'` | 즉시 로그인 가능. |
+| `created_by`, `updated_by` | `'system'` | §2.3 시드 컨벤션 (V8/V100/V101 등과 동일). |
+
+**SQL (Flyway V109):**
+
+```sql
+INSERT INTO admin (
+    admin_id, password, name, mobile, email, status,
+    created_at, created_by, updated_at, updated_by
+) VALUES (
+    'jinos78',
+    '$2a$10$qsyZ2JFv1T9GVWmi9h7qzejOLOf9sLtdDQ3YsAfwAJkFx9m1xuot.',
+    '관리자',
+    NULL,
+    NULL,
+    'JOINED',
+    CURRENT_TIMESTAMP(3), 'system', CURRENT_TIMESTAMP(3), 'system'
+);
+```
+
+> [!warning] 운영 보안 권고
+> 본 시드 계정 (`jinos78` / `rhatoRl121!`) 은 **부트스트랩 전용**이다. 운영 환경에 V109 적용 직후 `IF-CM-AUTH-001` 로 로그인 → `IF-CM-USR-002` (Phase 1.5 비밀번호 변경 — DE24-1 §5.2.2) 로 비밀번호를 즉시 변경한다. 별도 운영 admin 1건 이상 생성 후 본 시드 계정은 비밀번호 회전 또는 `status='WITHDRAWN'` 처리를 검토한다.
+
 ---
 
 ## 7. Flyway 마이그레이션 계획
@@ -1301,9 +1334,10 @@ INSERT INTO rule_template (
 | V105 | `V105__item_supplier_history.sql` | 신규 테이블 `item_supplier_history` (flat 컬럼 버전: priority/role/unit_price/lead_time_days/effective_*/operation/reason/changed_by) + FK(RESTRICT) + 3 index. Phase 1 선택, Phase 2 필수 | 트랜잭션 |
 | V106 | `V106__project_favorite.sql` | 신규 테이블 `project_favorite` (user_id, project_no, favorited_at) + PK(user_id, project_no) + 2 index. **DE22-1 v1.6 개방이슈 해결**. FK 는 Phase 2 OM 서브시스템 스키마 확정 이후 ALTER | 트랜잭션 |
 | **v1.3 ALTER 시리즈 (CM 인증)** | | | |
-| V107 | `V107__create_admin.sql` | 신규 테이블 `admin` (admin_id·password·name·mobile·email·status·latest_at + 감사 컬럼) + UK(admin_id, email) + idx(status) + CHECK(status IN ...). 초기 시드 `system` 1건(`status='SUSPENDED'`, password = 무효 placeholder, 운영 시 ADMIN 이 별도 생성) | 트랜잭션 |
+| V107 | `V107__create_admin.sql` | 신규 테이블 `admin` (admin_id·password·name·mobile·email·status·latest_at + 감사 컬럼) + UK(admin_id, email) + idx(status) + CHECK(status IN ...). 부트스트랩 admin 시드는 V109 로 분리. | 트랜잭션 |
 | V108 | `V108__create_admin_login_history.sql` | 신규 테이블 `admin_login_history` (admin_id FK·login_at·ip·user_agent·success·fail_reason·created_at) + FK RESTRICT + 2 index + CHECK(fail_reason IN ...) | 트랜잭션 |
-| **개방** | `V109+__product_dies_book_fk.sql` *(보류)* | `product.dies_book_id` FK — **개방 이슈 #4 (방향 미확정) 확정 후 적용.** FE 구현 블로킹 없음 | 미적용 |
+| V109 | `V109__seed_admin.sql` *(v1.3-r1, IF-CM-USR-001 부트스트랩)* | 부트스트랩 admin 1건 (`admin_id='jinos78'`, `name='관리자'`, `status='JOINED'`). password 컬럼은 평문 `rhatoRl121!` 의 BCryptPasswordEncoder (cost=10, prefix `$2a$`) 해시 사전 계산값. **운영 배포 시 즉시 비밀번호 변경 권고.** §6.4 시드 데이터 항목 참조. | 트랜잭션 |
+| **개방** | `V110+__product_dies_book_fk.sql` *(보류)* | `product.dies_book_id` FK — **개방 이슈 #4 (방향 미확정) 확정 후 적용.** FE 구현 블로킹 없음. (구 V109 placeholder 가 V109 admin 시드로 사용되며 V110+ 로 밀림.) | 미적용 |
 
 **원칙:**
 - 각 파일은 **단일 논리 단위** (생성+FK+인덱스+CHECK 일괄). 향후 ALTER 는 별도 파일로.
@@ -1330,7 +1364,7 @@ graph LR
 
 V1 → V2 → V3 → V4 → V5 → V6 → V7 → V8 → V9 순차 실행. Flyway 는 버전순으로 자동 처리.
 
-**v1.2 ALTER 시리즈 의존성 (V100~V106) + v1.3 추가 (V107~V108) + 보류 (V109):**
+**v1.2 ALTER 시리즈 의존성 (V100~V106) + v1.3 추가 (V107~V108) + v1.3-r1 (V109 admin 시드) + 보류 (V110+):**
 
 ```mermaid
 graph LR
@@ -1343,10 +1377,11 @@ graph LR
   V1[V1 master] --> V106[V106 project_favorite CREATE]
   ROOT[init] --> V107[V107 admin CREATE]
   V107 --> V108[V108 admin_login_history CREATE]
-  V100 -.개방이슈#4 확정 시.-> V109[V109 product.dies_book_id FK 보류]
+  V107 --> V109[V109 admin seed jinos78]
+  V100 -.개방이슈#4 확정 시.-> V110[V110+ product.dies_book_id FK 보류]
 ```
 
-V100~V108 은 독립 적용 가능하나 테스트 편의상 순차 적용. V107 / V108 (CM 인증) 은 BOM 도메인 V1~V106 과 무관하므로 병행 적용 가능 — 단 V107 → V108 순서 의존(FK). V109 (구 V107 product FK) 은 **개방 이슈 #4 (PRODUCT↔DIES_BOOK 관계 방향) 확정 후 별도 적용** — FE 구현 블로킹 없음.
+V100~V109 은 독립 적용 가능하나 테스트 편의상 순차 적용. V107 / V108 / V109 (CM 인증·시드) 은 BOM 도메인 V1~V106 과 무관하므로 병행 적용 가능 — 단 V107 → V108 (FK), V107 → V109 (admin 테이블 INSERT) 순서 의존. V110+ (구 V109 product FK placeholder) 은 **개방 이슈 #4 (PRODUCT↔DIES_BOOK 관계 방향) 확정 후 별도 적용** — FE 구현 블로킹 없음.
 
 ### 7.3 배포·롤백 전략
 
@@ -1455,6 +1490,7 @@ Phase 2 엔티티는 **RESOLVED_BOM 읽기 전용** 원칙 유지. BOM 도메인
 | v1.0 | 2026-04-21 | 김지광 | 초판 작성 — DE32-1 v1.1 및 용어사전 v1.4 기반. 19 엔티티 CREATE TABLE DDL, FK 27건, 인덱스 38건, frozen 트리거 2종, BOM_RULE_HISTORY 트리거 3종(선택지 A), 시드 2종(option_group / rule_template), Flyway V1~V9 파일 분리 계획, 미결 이슈 7건 |
 | v1.1 | 2026-04-22 | 김지광 | 공급망 화면 FE 정합 (V100~V105 계획) — (1) `dies_supplier` +2컬럼(scope_desc, active). (2) `dies_book` +2컬럼(series_code, issued_date). (3) 신규 `dies_book_revision`. (4) `item_supplier` +5컬럼. (5) 신규 `item_supplier_history`. 엔티티 19→21, FK 27→29, 인덱스 38→45. |
 | **v1.2** | **2026-04-22** | **김지광** | **Flyway V100~V105 확정 + V106 project_favorite 신설 (DE22-1 v1.6 §5 개방이슈 해결).** 주요 변경: (1) V100 파일명·역할 재정리 (dies_book series/issued 확정 + `uk_dies_book_series_rev` UNIQUE 추가). (2) V101 dies_book_revision CREATE. (3) V102 dies_supplier active/scope (scope_desc 200→500). (4) V103 item_supplier priority/role (`supply_role`→`role`, enum 에 EMERGENCY 추가). (5) V104 item_supplier pricing/effective (`valid_*`→`effective_*`, `effective_from NOT NULL DEFAULT CURRENT_DATE`, `idx_item_supplier_effective` = (item_id, supplier_id, effective_from DESC)). (6) V105 item_supplier_history (flat 컬럼 버전 확장). (7) **V106 project_favorite (신규)** — Phase 2 FK 보류. (8) 개방이슈 **#4 PRODUCT↔DIES_BOOK FK 방향 보류 유지** ("Phase 2 착수 시 CR 결정", FE 구현 블로킹 없음) + 신규 이슈 #9 (dies_book_revision 마이그레이션 호환성), #10 (project_favorite FK Phase 2). **엔티티 21→23, FK 29→31, 인덱스 45→48.** |
+| **v1.3-r1** | **2026-04-27** | **김지광** | **부트스트랩 admin 시드 신설 (Flyway V109).** (1) §6.4 신설 — V109 `seed_admin.sql`. `admin_id='jinos78'` / `name='관리자'` / `status='JOINED'` / password 는 평문 `rhatoRl121!` (10자, DEC-03 충족) 의 BCryptPasswordEncoder (cost=10, prefix `$2a$`) 해시 사전 계산값. **운영 배포 시 즉시 비밀번호 변경 권고** 명시. (2) §7.1 파일 분리 전략 표에 V109 행 추가, V107 description 의 시드 placeholder 문구 정리, 구 V109+ product_dies_book_fk 보류 placeholder 를 V110+ 으로 밀어냄. (3) §7.2 의존성 mermaid 갱신. **메타: r1 = v1.3 본문 보존 + internal revision** (파일명 v1.3 유지). |
 | **v1.3** | **2026-04-27** | **김지광** | **CM 인증 도메인 2 엔티티 신설 — 관리자 = 일반 사용자 단일 모델 확정.** (1) §3.21 `admin` 신설 (Flyway V107) — `admin_id`/`password`(bcrypt)/`name`/`mobile`/`email`/`status`(JOINED/SUSPENDED/WITHDRAWN)/`latest_at` + 감사 컬럼 4종. UNIQUE `uq_admin_admin_id`·`uq_admin_email`. (2) §3.22 `admin_login_history` 신설 (Flyway V108) — `admin_id` FK(RESTRICT) + `login_at`/`ip`(VARCHAR 45 IPv6)/`user_agent`/`success`/`fail_reason` + 2 index. 자체 감사 테이블이므로 `created_at` 만 보유. (3) §1.2 작성 원칙 #5 "관리자 = 일반 사용자 단일 모델" 추가. (4) §2.4 FK 전략 표에 ADMIN_LOGIN_HISTORY → ADMIN 행 추가. (5) §2.5 소프트 삭제 정책에 admin (`status='WITHDRAWN'`) 추가. (6) §4.1 인덱스 +4건(`uq_admin_admin_id`, `uq_admin_email`, `idx_admin_status`, `ix_admin_login_history_admin_id_login_at`, `ix_admin_login_history_success` — 단 PK 2개는 분리 카운트). (7) §4.2 FK +1건 (Phase 1 활성 29→30). (8) §7.1 V107·V108 추가 (V109 product_dies_book FK 보류 rename). (9) §8.1 검증 체크리스트 25 엔티티·52 인덱스로 갱신 + CM 인증 정합 행 추가. (10) §9 신규 이슈 #11 (admin_login_history 파티셔닝), #12 (admin ↔ wims_user 정규화) 추가. **엔티티 23→25, FK 31→32(Phase 1 활성 29→30), 인덱스 48→52.** 5회 실패 SUSPENDED 자동 전환·IF-EVT-USR-001 발행 등 정책은 APP 계층(DE24-1 §5.2.1)에 위임. |
 
 ---
