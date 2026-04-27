@@ -1,7 +1,7 @@
 ---
-title: CM 공통 기능 요구사항 상세 (AN12-1 Phase1 v1.1-r3)
+title: CM 공통 기능 요구사항 상세 (AN12-1 Phase1 v1.1-r4)
 parent: "[[AN12-1_요구사항정의서_Phase1_v1.1]]"
-version: 1.1-r3
+version: 1.1-r4
 updated: 2026-04-27
 type: 분석
 status: review
@@ -23,6 +23,7 @@ related:
 > v1.1 에서 CM 영역 신규·개정 사항은 없음 (전체 계승).
 > v1.1-r2 분산 구조 재편 (2026-04-23).
 > **v1.1-r3 (2026-04-27):** 관리자 = 일반 사용자 단일 모델 확정. FR-CM-001 본문 수용기준 강화 (JWT TTL·Redis·5회 잠금) + 신규 FR-CM-007 (관리자 인증 = IF-CM-AUTH-001/002/003), FR-CM-008 (비밀번호 정책 bcrypt·10자·5회 잠금), FR-CM-009 (로그인 이력 감사 admin_login_history) 3건 추가. CM FR 6 → **9건**.
+> **v1.1-r4 (2026-04-27):** FR-CM-008 비밀번호 정책에 **전송 구간 암호화** 수용기준 추가 — 클라이언트는 IF-CM-AUTH-004 공개키로 RSA-OAEP-SHA256 암호화한 Base64 ciphertext 만 `LoginRequest.password` 로 전송. 평문 전송은 서버에서 거부 ([[DE24-1_인터페이스설계서_v2.0]] §3.2.6).
 
 ## 1. 개요
 
@@ -92,17 +93,18 @@ WIMS 2.0 **공통(Common)** 서브시스템은 전 서브시스템(PM/ES/OM/MF/F
 
 ---
 
-#### FR-CM-008 관리자 비밀번호 정책 (bcrypt + 10자 + 5회 잠금) `v1.1-r3 신규`
+#### FR-CM-008 관리자 비밀번호 정책 (bcrypt + 10자 + 5회 잠금 + 전송 암호화) `v1.1-r3 신규 / v1.1-r4 보강`
 
 | 항목 | 내용 |
 |------|------|
 | **분류** | 기능 > 공통 > 인증 |
 | **난이도** | 중 / **우선순위** 최상 / **수용여부** 수용 |
-| **출처** | DEC-03 (비밀번호 10자) + NFR-SC-CM-004/005 |
-| **관련 요구사항** | FR-CM-007, FR-CM-009, NFR-SC-CM-004, NFR-SC-CM-005 |
+| **출처** | DEC-03 (비밀번호 10자) + NFR-SC-CM-003 (TLS) + NFR-SC-CM-004/005 |
+| **관련 요구사항** | FR-CM-007, FR-CM-009, NFR-SC-CM-003, NFR-SC-CM-004, NFR-SC-CM-005 |
+| **관련 인터페이스** | IF-CM-AUTH-001 (`POST /api/auth/login`), **IF-CM-AUTH-004 (`GET /api/auth/public-key`)** |
 | **관련 엔티티** | `admin.password` (VARCHAR(255), bcrypt 해시) |
 
-**개요:** 관리자 비밀번호 저장·검증 정책. 평문 저장 절대 금지 — bcrypt 해시 (cost 10 권장). DEC-03 정합 **10자 이상**, 영문/숫자/특수문자 3종 이상.
+**개요:** 관리자 비밀번호 저장·검증·전송 정책. 평문 저장 절대 금지 — bcrypt 해시 (cost 10 권장). DEC-03 정합 **10자 이상**, 영문/숫자/특수문자 3종 이상. 전송 구간은 TLS 위 RSA-OAEP-SHA256 이중 방어.
 
 **수용기준:**
 
@@ -111,6 +113,8 @@ WIMS 2.0 **공통(Common)** 서브시스템은 전 서브시스템(PM/ES/OM/MF/F
 3. 5회 연속 실패 시 `admin.status='SUSPENDED'` 자동 전환 + `IF-EVT-USR-001(USER_LOCKED)` 발행. 실패 카운터는 Redis `loginfail:{adminId}` (TTL = 24h, 성공 시 reset).
 4. SUSPENDED 상태에서는 모든 인증 요청을 `403 USER_SUSPENDED` 로 거부.
 5. 잠금 해제는 ADMIN 의 수동 unlock 또는 비밀번호 재설정 성공 시.
+6. **(v1.1-r4 신규)** **전송 구간 암호화** — 클라이언트는 `GET /api/auth/public-key` (IF-CM-AUTH-004) 로 발급받은 RSA-2048 공개키로 평문 password 를 RSA-OAEP-SHA256 암호화 → Base64 인코딩 → `LoginRequest.password` 필드에 전송. **평문 password 의 네트워크 전송 금지** (서버 측 복호화 실패 시 `400 INVALID_PASSWORD_CIPHER`). 키 쌍은 서버 시작 시 메모리 생성 / 재시작 회전. 정책 상세는 [[DE24-1_인터페이스설계서_v2.0]] §3.2.6.
+7. **(v1.1-r4 신규)** 복호화된 평문이 10자 미만이면 `400 PASSWORD_POLICY` 로 거부 — bcrypt 비교 이전 단계에서 정책 검증.
 
 ---
 
@@ -282,7 +286,7 @@ WIMS 2.0 **공통(Common)** 서브시스템은 전 서브시스템(PM/ES/OM/MF/F
 | FR-CM-005 | 해당 각 화면 | — | — |
 | FR-CM-006 | 전체 | — | — |
 | **FR-CM-007** | SCR-CM-001 | IF-CM-AUTH-001/002/003 (`/api/auth/login`·`/refresh`·`/logout`) | admin |
-| **FR-CM-008** | SCR-CM-001/002 | IF-CM-AUTH-001 | admin |
+| **FR-CM-008** | SCR-CM-001/002 | IF-CM-AUTH-001, **IF-CM-AUTH-004** | admin |
 | **FR-CM-009** | (감사 백오피스) | — | admin_login_history |
 | NFR-SC-CM-001~006 | SCR-CM-001/002/003 | /auth/**, 감사로그 | admin, admin_login_history |
 
@@ -292,6 +296,7 @@ WIMS 2.0 **공통(Common)** 서브시스템은 전 서브시스템(PM/ES/OM/MF/F
 
 | 버전 | 일자 | 작성자 | 변경 내용 |
 |------|------|--------|----------|
+| v1.1-r4 | 2026-04-27 | 김지광 | FR-CM-008 비밀번호 정책에 **전송 구간 암호화 수용기준** 추가 (수용기준 6·7번). 클라이언트는 IF-CM-AUTH-004 (`GET /api/auth/public-key`) 의 RSA-2048 공개키로 RSA-OAEP-SHA256 암호화한 Base64 ciphertext 만 `LoginRequest.password` 로 전송. 평문 password 네트워크 전송 금지. 복호화된 평문 길이 10자 미만 시 `400 PASSWORD_POLICY`. DE24-1 v2.0-r3 §3.2.6 정합. |
 | v1.1-r3 | 2026-04-27 | 김지광 | 관리자 = 일반 사용자 단일 모델 확정. FR-CM-001 본문 수용기준 강화 (JWT TTL access 1h / refresh 24h, Redis refresh+session+blacklist, 5회 잠금). 신규 FR-CM-007 (관리자 인증 IF-CM-AUTH-001/002/003), FR-CM-008 (비밀번호 정책 bcrypt + 10자 + 5회 잠금), FR-CM-009 (로그인 이력 감사 admin_login_history) 3건 추가. CM FR 6 → **9건**. RTM 표 admin / admin_login_history 엔티티 매핑. |
 | v1.1-r2 | 2026-04-23 | 김지광 | 분산 구조 재편 (sections/ 패턴, v1.0 계승 본문 통합). |
 
